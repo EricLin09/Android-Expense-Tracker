@@ -17,5 +17,9 @@ public final class Flavor {
     public static final boolean LOCAL_LLM = false;
     public static final boolean IMPORT_MERCHANT_FILE = false;
 
+    /** 小组件是紧凑尺寸（2×1）：副行只放得下一项。2×1 只放得下一项——月份+支+收+大数字四项挤不下，
+     *  与其截成省略号，不如明确只显示支出：收入不是这个尺寸上会瞥一眼的东西 */
+    public static final boolean COMPACT_WIDGET = true;
+
     private Flavor() {}
 }

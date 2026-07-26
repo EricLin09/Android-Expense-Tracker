@@ -1,63 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  国内版 2×1 小组件。
+  国内版 2×1 小组件：固定两行「今日支出 / 本月支出」。
 
-  高度只有 40~50dp，放不下双币版那种「顶行 + 两块 + 分隔线」的结构，所以改成
-  左右分栏：左边一列小字（月份 / 支收），右边一个大数字。大数字右对齐，位数
-  变长时向左伸展，不会顶到左边的标签。
+  为什么不跟随设置里的「结余 / 总支出」：2×1 只有 40~50dp 高，装不下月份、支出、
+  收入、大数字四项——之前挤在一行的方案要么截断要么省略。改成两行各自语义固定，
+  信息密度更高，也不需要用户先理解"大数字现在代表什么"。
 
-  id 与双币版保持一致（wRoot/wMonth/wCnyBalance/wCnySub），WidgetProvider 因此
-  只需跳过澳元那一块，不用维护两套刷新逻辑。
+  每行是「标签靠左 + 金额靠右」，金额 wrap_content 优先取宽，标签可被压缩。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:gravity="center_vertical"
     android:background="@drawable/widget_bg"
     android:paddingHorizontal="14dp"
-    android:paddingVertical="8dp">
+    android:paddingVertical="7dp">
 
-    <!-- 左：月份 + 支/收 -->
+    <!-- 今日支出 -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
         <TextView
-            android:id="@+id/wMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="今日支出"
+            android:textColor="#A6FFFFFF"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+        <TextView
+            android:id="@+id/wToday"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2026-7"
-            android:textColor="#F2FFFFFF"
-            android:textSize="12sp"
+            android:layout_marginStart="6dp"
+            android:text="¥0.00"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:fontFeatureSettings="tnum" />
-        <TextView
-            android:id="@+id/wCnySub"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:text="支 ¥0 · 收 ¥0"
-            android:textColor="#A6FFFFFF"
-            android:textSize="10sp"
-            android:maxLines="1"
-            android:ellipsize="end" />
     </LinearLayout>
 
-    <!-- 右：大数字，右对齐，位数长了向左伸 -->
-    <TextView
-        android:id="@+id/wCnyBalance"
-        android:layout_width="0dp"
+    <!-- 本月支出 -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:gravity="end"
-        android:text="¥0.00"
-        android:textColor="#FFFFFF"
-        android:textSize="19sp"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:fontFeatureSettings="tnum" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="3dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="本月支出"
+            android:textColor="#A6FFFFFF"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+        <TextView
+            android:id="@+id/wMonthExp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="¥0.00"
+            android:textColor="#EFB4A8"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:fontFeatureSettings="tnum" />
+    </LinearLayout>
 </LinearLayout>

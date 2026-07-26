@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      国内版的 2×1 小组件布局里没有澳元那两个视图，但 WidgetProvider 是共享代码，
-      里面 `if (Flavor.DUAL_CURRENCY) { ... R.id.wAudBalance ... }` 这段即使永远不执行，
-      也需要这两个 id 在编译期存在。
-
-      在这里声明是 Android 的常规做法：id 存在但没有视图使用，运行时那段分支也不会
-      被走到（Flavor.DUAL_CURRENCY 是编译期常量 false）。
+      共享的 WidgetProvider 里有双币 2×2 的分支（Flavor.COMPACT_WIDGET 为 true 时不执行），
+      但那些 R.id 需要在编译期存在。国内版的 2×1 布局里没有这些视图，在此声明。
     -->
+    <item type="id" name="wMonth" />
+    <item type="id" name="wCnyBalance" />
+    <item type="id" name="wCnySub" />
     <item type="id" name="wAudBalance" />
     <item type="id" name="wAudSub" />
 </resources>

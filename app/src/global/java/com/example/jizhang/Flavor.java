@@ -15,5 +15,8 @@ public final class Flavor {
     /** 从文件导入个人商户表（需要在电脑上编 TSV） */
     public static final boolean IMPORT_MERCHANT_FILE = true;
 
+    /** 小组件是紧凑尺寸（2×1）：副行只放得下一项。2×2 放得下支出和收入两项 */
+    public static final boolean COMPACT_WIDGET = false;
+
     private Flavor() {}
 }

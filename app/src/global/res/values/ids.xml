@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 反过来：紧凑 2×1 分支里的 id，双币版布局里没有，在此声明 -->
+    <item type="id" name="wToday" />
+    <item type="id" name="wMonthExp" />
+</resources>

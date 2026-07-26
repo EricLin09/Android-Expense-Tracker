@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.util.TypedValue;
 import android.widget.RemoteViews;
 
 import java.text.SimpleDateFormat;
@@ -38,26 +39,33 @@ public class WidgetProvider extends AppWidgetProvider {
         String ym = new SimpleDateFormat("yyyy-MM", Locale.CHINA).format(new java.util.Date());
         DbHelper db = new DbHelper(context);
 
-        // 大数字显示结余还是总支出，跟随设置页「总览大数字」
-        boolean be = MainActivity.bigExpense(context);
-        // 顶行：月份。双币版有汇率缓存时拼上「· 1A$≈¥4.73」；单币版没有汇率，也没这个位置
-        String month = new SimpleDateFormat("yyyy-M", Locale.CHINA).format(new java.util.Date());
-        String rate = Flavor.DUAL_CURRENCY ? Rates.label(context) : null;
-        views.setTextViewText(R.id.wMonth, rate == null ? month : month + " · " + rate);
+        if (Flavor.COMPACT_WIDGET) {
+            // 2×1：固定两行「今日支出 / 本月支出」，不跟随设置里的结余/总支出——
+            // 这个尺寸装不下四项信息，语义固定反而更好读。
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(new java.util.Date());
+            views.setTextViewText(R.id.wToday, money("¥", db.monthTotals(today, "CNY")[0]));
+            views.setTextViewText(R.id.wMonthExp, money("¥", db.monthTotals(ym, "CNY")[0]));
+        } else {
+            // 大数字显示结余还是总支出，跟随设置页「总览大数字」
+            boolean be = MainActivity.bigExpense(context);
+            // 顶行：月份，有汇率缓存时拼上「· 1A$≈¥4.73」
+            String month = new SimpleDateFormat("yyyy-M", Locale.CHINA).format(new java.util.Date());
+            String rate = Rates.label(context);
+            views.setTextViewText(R.id.wMonth, rate == null ? month : month + " · " + rate);
 
-        double[] cny = db.monthTotals(ym, "CNY");
-        views.setTextViewText(R.id.wCnyBalance,
-                be ? expenseText("¥", cny) : balanceText("¥", cny));
-        views.setTextColor(R.id.wCnyBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
-        views.setTextViewText(R.id.wCnySub, be ? incomeOnly("¥", cny) : subText("¥", cny));
+            double[] cny = db.monthTotals(ym, "CNY");
+            String cnyBig = be ? expenseText("¥", cny) : balanceText("¥", cny);
+            views.setTextViewText(R.id.wCnyBalance, cnyBig);
+            views.setTextViewTextSize(R.id.wCnyBalance, TypedValue.COMPLEX_UNIT_SP, bigSize(cnyBig));
+            views.setTextColor(R.id.wCnyBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
+            views.setTextViewText(R.id.wCnySub, subLine(be, cny));
 
-        // 单币版的 2×1 布局里没有澳元这块，连 id 都不存在——必须跳过，否则 RemoteViews 会崩
-        if (Flavor.DUAL_CURRENCY) {
             double[] aud = db.monthTotals(ym, "AUD");
-            views.setTextViewText(R.id.wAudBalance,
-                    be ? expenseText("A$", aud) : balanceText("A$", aud));
+            String audBig = be ? expenseText("A$", aud) : balanceText("A$", aud);
+            views.setTextViewText(R.id.wAudBalance, audBig);
+            views.setTextViewTextSize(R.id.wAudBalance, TypedValue.COMPLEX_UNIT_SP, bigSize(audBig));
             views.setTextColor(R.id.wAudBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
-            views.setTextViewText(R.id.wAudSub, be ? incomeOnly("A$", aud) : subText("A$", aud));
+            views.setTextViewText(R.id.wAudSub, subLine(be, aud));
         }
 
         // 点卡片打开首页
@@ -68,6 +76,18 @@ public class WidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.wRoot, openPi);
 
         mgr.updateAppWidget(widgetId, views);
+    }
+
+    /**
+     * 大数字的字号：位数最多 6 位已经由 {@link #money} 保证，但结余模式会多一个负号，
+     * "A$" 也比 "¥" 宽一格——真到最长的组合（-A$123456）时降一档字号，
+     * 比截掉末位数字好。
+     */
+    private static float bigSize(String text) {
+        int n = text.length();
+        if (n <= 8) return 20f;      // ¥2088.57
+        if (n <= 10) return 18f;     // -A$1817.35
+        return 16f;                  // -A$123456 之类的极端情况
     }
 
     /**
@@ -96,9 +116,27 @@ public class WidgetProvider extends AppWidgetProvider {
         return money(sym, t[0]);
     }
 
-    /** 只显示收入的小字行（大数字已是支出时） */
+    /**
+     * 副行内容。大数字是支出时补上收入；大数字是结余时给出支出与收入的拆解。
+     * 紧凑小组件（2×1）宽度只够一项，结余模式下只留支出。
+     */
+    private static CharSequence subLine(boolean bigIsExpense, double[] t) {
+        return bigIsExpense ? incomeOnly("", t) : subText("", t);
+    }
+
+    /** 只显示支出的小字行（紧凑小组件的结余模式） */
+    private static CharSequence expenseOnly(double[] t) {
+        String exp = money("", t[0]);
+        String s = "支 " + exp;
+        android.text.SpannableString sp = new android.text.SpannableString(s);
+        sp.setSpan(new android.text.style.ForegroundColorSpan(0xFFEFB4A8), 2, s.length(), 0);
+        return sp;
+    }
+
+    /** 只显示收入的小字行（大数字已是支出时）。
+     *  不带货币符号：上方大数字已经标了币种，副行再带一遍纯属浪费宽度。 */
     private static CharSequence incomeOnly(String sym, double[] t) {
-        String inc = money(sym, t[1]);
+        String inc = money("", t[1]);
         String s = "收 " + inc;
         android.text.SpannableString sp = new android.text.SpannableString(s);
         sp.setSpan(new android.text.style.ForegroundColorSpan(0xFFAECFB6), 2, s.length(), 0);
@@ -106,10 +144,11 @@ public class WidgetProvider extends AppWidgetProvider {
     }
 
     /** 支出/收入小字：金额分别着淡珊瑚/淡苔绿（Spannable 可通过 RemoteViews 传递）。
-     *  用「支/收」短标签并保持单行，金额再长也不换行挤爆 2×2 高度。 */
+     *  用「支/收」短标签并保持单行；不带货币符号（上方大数字已标明），
+     *  否则 "支 A$1817.35 · 收 A$459.41" 会超出 2×2 的半宽被截断。 */
     private static CharSequence subText(String sym, double[] t) {
-        String exp = money(sym, t[0]);
-        String inc = money(sym, t[1]);
+        String exp = money("", t[0]);
+        String inc = money("", t[1]);
         String s = "支 " + exp + " · 收 " + inc;
         android.text.SpannableString sp = new android.text.SpannableString(s);
         int expStart = 2;
