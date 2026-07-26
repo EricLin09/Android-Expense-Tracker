@@ -100,7 +100,7 @@ public class SmartCategoryActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     btnTest.setEnabled(true);
                     btnTest.setText("测试连接");
-                    toast(ok ? "连接成功" : "连不上，检查地址和服务是否在跑");
+                    toast(ok ? "连接成功" : "连不上，检查地址、API Key 和服务是否在跑");
                 });
             }).start();
         });

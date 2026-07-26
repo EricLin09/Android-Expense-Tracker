@@ -51,11 +51,33 @@ public class LocalLlm {
                 .apply();
     }
 
-    /** 服务是否可达。用于设置页的「测试连接」。 */
+    /**
+     * 服务是否真的能用。用于设置页的「测试连接」。
+     *
+     * 故意打 /v1/chat/completions 而不是 /health：llama.cpp 不给 /health 和 /v1/models
+     * 加鉴权，用 --api-key 起服务时这两个端点在 key 缺失或填错的情况下照样返回 200。
+     * 于是「测试连接」显示成功，真正分类时 401，记录全留在「待分类」——用户被告知
+     * 连接正常，功能却根本跑不了。测试必须走和 {@link #classify} 完全同一条路径
+     * （同一端点、同一鉴权头），否则测的就不是要用的那个东西。
+     *
+     * max_tokens=1：只要服务器接受请求并开始生成就够了，不必等一个完整答案。
+     */
     public static boolean ping(Context ctx) {
         HttpURLConnection conn = null;
         try {
-            conn = open(ctx, "/health", "GET");
+            JSONObject msg = new JSONObject();
+            msg.put("role", "user");
+            msg.put("content", "ping");
+
+            JSONObject body = new JSONObject();
+            body.put("messages", new JSONArray().put(msg));
+            body.put("max_tokens", 1);
+
+            conn = open(ctx, "/v1/chat/completions", "POST");
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+            }
             return conn.getResponseCode() == 200;
         } catch (Exception e) {
             return false;
