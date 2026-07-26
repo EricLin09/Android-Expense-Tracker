@@ -61,7 +61,12 @@ public class StatsActivity extends AppCompatActivity {
         segYear.setOnClickListener(v -> setMode(true));
 
         updateCurrencyPill();
-        pillCurrency.setOnClickListener(this::showCurrencyMenu);
+        if (Flavor.DUAL_CURRENCY) {
+            pillCurrency.setOnClickListener(this::showCurrencyMenu);
+        } else {
+            pillCurrency.setVisibility(View.GONE);
+            currency = Currencies.DEFAULT;      // 单币种没有「总览」，固定成人民币
+        }
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnPrev).setOnClickListener(v -> {
@@ -103,7 +108,7 @@ public class StatsActivity extends AppCompatActivity {
     private void showCurrencyMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         // 与首页 showViewMenu 保持一致：总览 / 人民币 CNY / 澳元 AUD
-        menu.getMenu().add(0, -1, 0, "总览");
+        if (Flavor.DUAL_CURRENCY) menu.getMenu().add(0, -1, 0, "总览");
         String[] codes = Currencies.codes();
         for (int i = 0; i < codes.length; i++) {
             menu.getMenu().add(0, i, i + 1,

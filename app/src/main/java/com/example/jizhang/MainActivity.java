@@ -39,12 +39,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String KEY_BIG_EXPENSE = "big_expense";
     /** 首页左上角标题，用户可自定义，空则用默认「记账本」 */
     public static final String KEY_HOME_TITLE = "home_title";
-    public static final String DEFAULT_TITLE = "记账本";
+    /** 首页默认标题取应用名——国内版叫「记账簿」，由 flavor 的 strings.xml 覆盖，
+     *  这样启动器标签和首页标题只需要改一处。 */
 
     static String homeTitle(android.content.Context ctx) {
         String t = ctx.getSharedPreferences("jizhang_prefs", MODE_PRIVATE)
                 .getString(KEY_HOME_TITLE, "");
-        return t == null || t.trim().isEmpty() ? DEFAULT_TITLE : t.trim();
+        return t == null || t.trim().isEmpty() ? ctx.getString(R.string.app_name) : t.trim();
     }
 
     static boolean bigExpense(android.content.Context ctx) {
@@ -114,7 +115,13 @@ public class MainActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
 
         updatePill();
-        pillCurrency.setOnClickListener(this::showViewMenu);
+        if (Flavor.DUAL_CURRENCY) {
+            pillCurrency.setOnClickListener(this::showViewMenu);
+        } else {
+            // 只有一种货币，没有可切的东西——留一个点了没反应的控件比没有更糟
+            pillCurrency.setVisibility(View.GONE);
+            viewMode = Currencies.DEFAULT;
+        }
 
         FloatingActionButton fab = findViewById(R.id.fabAdd);
         fab.setOnClickListener(v ->
@@ -136,7 +143,8 @@ public class MainActivity extends AppCompatActivity {
                 .format(new java.util.Date());
         db.processRecurring(today);
         Backup.autoBackupIfDue(this);
-        Rates.fetchAsync(this);   // 后台刷新澳元/人民币汇率，供小组件显示
+        // 汇率只服务小组件的双币行；单币种版本没有它，也就没有任何网络请求
+        if (Flavor.DUAL_CURRENCY) Rates.fetchAsync(this);
         ((TextView) findViewById(R.id.tvAppTitle)).setText(homeTitle(this));
         refresh();
         WidgetProvider.refresh(this);   // 打开 App 顺带刷新桌面小组件（数据+最新布局）
@@ -156,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
         android.widget.EditText et = new android.widget.EditText(this);
         et.setText(homeTitle(this));
-        et.setHint(DEFAULT_TITLE);
+        et.setHint(getString(R.string.app_name));
         et.setSelectAllOnFocus(true);
         et.setSingleLine(true);
         et.setFilters(new android.text.InputFilter[]{
@@ -240,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showViewMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
-        menu.getMenu().add(0, -1, 0, "总览");
+        if (Flavor.DUAL_CURRENCY) menu.getMenu().add(0, -1, 0, "总览");
         String[] codes = Currencies.codes();
         for (int i = 0; i < codes.length; i++) {
             menu.getMenu().add(0, i, i + 1,

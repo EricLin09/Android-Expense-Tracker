@@ -41,6 +41,18 @@ public class SmartCategoryActivity extends AppCompatActivity {
         // 这一行是「标题 + 副标题」的 LinearLayout，不是 TextView
         android.view.View btnMerchant = findViewById(R.id.btnMerchantImport);
 
+        findViewById(R.id.secMerchant).setVisibility(
+                Flavor.IMPORT_MERCHANT_FILE ? android.view.View.VISIBLE : android.view.View.GONE);
+        btnMerchant.setVisibility(
+                Flavor.IMPORT_MERCHANT_FILE ? android.view.View.VISIBLE : android.view.View.GONE);
+        findViewById(R.id.secLlm).setVisibility(
+                Flavor.LOCAL_LLM ? android.view.View.VISIBLE : android.view.View.GONE);
+        for (int id : new int[]{R.id.swLlmRow, R.id.etLlmHost, R.id.etLlmKey,
+                                R.id.llmButtons, R.id.tvLlmNote}) {
+            findViewById(id).setVisibility(
+                    Flavor.LOCAL_LLM ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
+
         refreshRulesInfo();
 
         swLlm.setChecked(LocalLlm.isEnabled(this) || prefsBool(LocalLlm.KEY_ENABLED));

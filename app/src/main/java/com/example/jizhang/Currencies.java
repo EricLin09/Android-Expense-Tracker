@@ -27,7 +27,15 @@ public class Currencies {
         return s != null ? s : code;
     }
 
+    /**
+     * 可选的货币。国内版只给人民币——一处收敛，记一笔的货币选择器、首页与统计页的
+     * 货币菜单会同时变成单选项。
+     *
+     * 注意 {@link #symbol} 仍然认识 AUD：从双币版导过来的历史记录要能正确显示，
+     * 只是不能再新建澳元记录。
+     */
     public static String[] codes() {
+        if (!Flavor.DUAL_CURRENCY) return new String[]{ DEFAULT };
         return SYMBOLS.keySet().toArray(new String[0]);
     }
 

@@ -14,6 +14,22 @@ android {
         versionName "1.0"
     }
 
+    // 双币原版（global）与纯国内版（cn）。差异集中在各自的 source set 里：
+    // Flavor.java 的常量 + assets/merchant_rules.tsv 的规则表，共享代码只在
+    // 少数几处读 Flavor 的编译期常量——是常量所以死分支会被优化掉，也不存在
+    // 运行时状态组合，两个 APK 各自行为固定。
+    flavorDimensions += "market"
+    productFlavors {
+        global {
+            dimension "market"
+        }
+        cn {
+            dimension "market"
+            applicationIdSuffix ".cn"
+            versionNameSuffix "-cn"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false

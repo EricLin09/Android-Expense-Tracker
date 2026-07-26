@@ -482,12 +482,19 @@ public class AutoSettingsActivity extends AppCompatActivity {
     }
 
     private void setupSmartCategory() {
+        // 二级页里只有「导入商户表」和「本地模型」两件事。国内版两者都没有，
+        // 那个页面就是空的——整段隐藏，商户表在背后默默工作即可。
+        boolean useful = Flavor.LOCAL_LLM || Flavor.IMPORT_MERCHANT_FILE;
+        findViewById(R.id.secSmartCategory).setVisibility(useful ? View.VISIBLE : View.GONE);
+        findViewById(R.id.rowSmartCategory).setVisibility(useful ? View.VISIBLE : View.GONE);
+        if (!useful) return;
         findViewById(R.id.rowSmartCategory).setOnClickListener(
                 v -> startActivity(new Intent(this, SmartCategoryActivity.class)));
     }
 
     /** 摘要要在从二级页返回后刷新，所以放在 onResume 里调 */
     private void refreshSmartSummary() {
+        if (!Flavor.LOCAL_LLM && !Flavor.IMPORT_MERCHANT_FILE) return;
         TextView tv = findViewById(R.id.tvSmartSummary);
         int user = MerchantRules.userSize(this);
         tv.setText(user > 0

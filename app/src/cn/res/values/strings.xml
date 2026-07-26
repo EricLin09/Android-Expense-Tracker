@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 国内版叫「记账簿」，与作者自用的双币版「记账本」区分开 -->
+    <string name="app_name">记账簿</string>
+</resources>

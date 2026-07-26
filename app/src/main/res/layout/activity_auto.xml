@@ -159,6 +159,7 @@
 
             <!-- 智能分类：详情收进二级页，主设置页只留摘要 -->
             <TextView
+                android:id="@+id/secSmartCategory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
