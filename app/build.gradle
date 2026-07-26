@@ -28,6 +28,12 @@ android {
         versionName "1.0"
     }
 
+    // AGP 8 起 BuildConfig 默认不生成。需要它是因为调试入口靠 BuildConfig.DEBUG
+    // 这个编译期常量来守卫——常量才能让 R8 在 release 里把整个分支删干净。
+    buildFeatures {
+        buildConfig true
+    }
+
     // 双币原版（global）与纯国内版（cn）。差异集中在各自的 source set 里：
     // Flavor.java 的常量 + assets/merchant_rules.tsv 的规则表，共享代码只在
     // 少数几处读 Flavor 的编译期常量——是常量所以死分支会被优化掉，也不存在
@@ -67,6 +73,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 调试包用独立的安装身份。没有这个后缀时 debug 和 release 的 applicationId
+            // 相同、签名不同，装 debug 会因签名冲突失败，唯一的出路是先卸载 release
+            // ——连带清空账本。加个后缀两者就能并存，各自独立的数据库。
+            applicationIdSuffix ".debug"
+        }
         release {
             // R8 裁剪 + 混淆。这个应用没有要保护的逻辑，开它是为了体积：依赖里
             // appcompat/material/recyclerview 绝大部分用不到。
