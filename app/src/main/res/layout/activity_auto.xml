@@ -65,7 +65,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="13sp"
                 android:lineSpacingExtra="4dp"
-                android:text="开启后，App 会读取支付宝/微信/云闪付的付款通知，自动生成账目（标记为“自动”，能认出的商户直接分好类，认不出的记为“待分类”方便你核对修改）。读通知、解析金额、查商户别名表全部在手机本地完成，不联网、不上传。" />
+                android:text="读取支付宝/微信/云闪付的付款通知自动生成账目。全程在手机本地完成，不联网、不上传。" />
 
             <!-- 第一步：通知使用权 -->
             <LinearLayout
@@ -155,7 +155,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="提示：自动生成的记录若金额或货币识别有误，回到首页长按该条即可删除，再手动补记。只能读取带金额的付款通知，抓不到没有通知或现金支付。" />
+                android:text="只能读到带金额的付款通知，现金支付和没有通知的交易抓不到。识别有误时在首页长按该条删除。" />
 
             <!-- 智能分类：详情收进二级页，主设置页只留摘要 -->
             <TextView
@@ -252,7 +252,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="首页总览卡和桌面小组件的大数字：结余（收入−支出），或本月总支出（收入显示在下方小字）。" />
+                android:text="首页和小组件的大数字显示哪个：结余（收入−支出），还是本月总支出。" />
 
             <LinearLayout
                 android:id="@+id/rowTheme"
@@ -344,7 +344,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="房租、话费这类固定支出可以设成周期记账：到期打开 App 时自动生成记录（标记为「周期」）。点条目可修改，开关可暂停。" />
+                android:text="房租、话费这类固定支出：到期打开 App 时自动生成记录。" />
 
             <!-- 数据备份 -->
             <TextView
@@ -464,7 +464,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="导出的 CSV 可以用 Excel 打开，也可以在换手机后用「从 CSV 导入」恢复账本（导入是追加，已存在的相同记录会自动跳过）。开启自动备份后，每天首次打开 App 会静默备份一份到所选文件夹，保留最近 3 份，建议选网盘同步的文件夹。" />
+                android:text="导入为追加，完全相同的记录自动跳过。自动备份保留最近 3 份，建议选网盘同步的文件夹。" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

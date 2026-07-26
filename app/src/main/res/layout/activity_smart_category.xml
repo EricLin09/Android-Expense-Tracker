@@ -87,7 +87,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="自动记账时先查商户表，命中即分类，全程在本机完成、不联网；没命中的记为「待分类」。\n\n内置表只收连锁品牌。自己常去的小店写成「关键词 + 制表符 + 分类」的文本文件导入，它优先于内置表、只存在本机（长按导入按钮可清除）。" />
+                android:text="先查商户表，命中即分类，不联网；没命中的记为「待分类」。\n\n内置表只收连锁品牌。常去的小店写成「关键词 + 制表符 + 分类」的文本文件导入，优先于内置表，只存在本机（长按导入可清除）。" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -190,7 +190,7 @@
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:lineSpacingExtra="3dp"
-                android:text="填了局域网内自建的模型服务地址后，「批量补分类」会把待分类的记录发去判断。请求只发往你填的这个地址，不经过第三方；服务不可用时记录保持「待分类」，不会写错。" />
+                android:text="填了自建的模型服务地址后，「批量补分类」会把待分类记录发去判断。只发往该地址，不经过第三方；服务不可用时保持「待分类」，不会写错。" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
