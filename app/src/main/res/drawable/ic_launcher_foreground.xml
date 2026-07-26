@@ -1,14 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  深墨蓝 ￥，单横杠。
+
+  为什么是单横杠：自适应图标画布 108 单位，在启动器常见的 48dp 上 1 单位只有
+  0.44px。￥ 的两条横杠要肉眼可辨，缝隙至少得 6 单位（≈2.7px），那描边就被压到 7
+  以下——又回到「远看是根发丝」的老问题。粗描边和双横杠在这个尺寸上不可兼得，
+  所以取单横杠换 10 的描边（48dp 下约 4.4px，旧版只有 2.7px）。
+
+  几何：自适应图标的可见区域是 108 画布里居中的 72×72（遮罩不会超出），
+  算上 strokeWidth=10 的外扩（±5），字形视觉范围 x 35..73、y 33..79，
+  即可见区域的 53% 宽、64% 高，几何中心 (54, 56)。单字形图标的常规区间是
+  60~65%：再大会顶到 squircle 收弧处，再小则在 48dp 下掉分量。
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- 加粗的白色 ￥ 符号，位于自适应图标安全区内 -->
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="6"
+        android:strokeColor="#2B3A4B"
+        android:strokeWidth="10"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M40,38 L54,54 L68,38 M54,54 L54,74 M43,60 L65,60 M43,67 L65,67" />
+        android:pathData="M40,38 L54,52 L68,38 M54,52 L54,74 M40,62 L68,62" />
 </vector>

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  暖白底，取自 app 内的 appBg #F4F3F0，再压深一点点，好让图标在浅色壁纸上
+  仍然有边界。用极轻的垂直渐变而不是纯色：被启动器遮罩成圆形后，纯色大色块
+  会显得发平，几个色阶的明暗差就够撑出体积，又不至于在 48dp 下变脏。
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
-        android:startColor="#7C95AF"
-        android:centerColor="#56718F"
-        android:endColor="#40566F"
-        android:angle="135" />
+        android:startColor="#F2EEE7"
+        android:endColor="#E5DFD4"
+        android:angle="270" />
 </shape>
