@@ -72,8 +72,9 @@ public class StatsActivity extends AppCompatActivity {
         findViewById(R.id.btnPrev).setOnClickListener(v -> {
             Calendar prev = (Calendar) cal.clone();
             prev.add(yearMode ? Calendar.YEAR : Calendar.MONTH, -1);
-            // 账本从 2026-07 开始：月视图不早于 2026-07，年视图不早于 2026
-            String floor = yearMode ? DbHelper.START_YM.substring(0, 4) : DbHelper.START_YM;
+            // 不早于账本起点：月视图比到「年-月」，年视图只比年份
+            String start = db.startYm();
+            String floor = yearMode ? start.substring(0, 4) : start;
             if ((yearMode ? fmtYear : fmt).format(prev.getTime()).compareTo(floor) < 0) return;
             cal.add(yearMode ? Calendar.YEAR : Calendar.MONTH, -1);
             render();
@@ -316,9 +317,10 @@ public class StatsActivity extends AppCompatActivity {
         String selYm = yearMode ? "" : fmt.format(cal.getTime());
         String sym = currency == null ? null : Currencies.symbol(currency);
         int barWidth = yearMode ? dp(13) : dp(22);
+        String startYm = db.startYm();
 
         for (int i = 0; i < n; i++) {
-            if (yms[i].compareTo(DbHelper.START_YM) < 0) continue;   // 账本起点之前的月份不画
+            if (yms[i].compareTo(startYm) < 0) continue;   // 账本起点之前的月份不画
             LinearLayout col = new LinearLayout(this);
             col.setOrientation(LinearLayout.VERTICAL);
             col.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);

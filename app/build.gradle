@@ -15,7 +15,13 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.jizhang"
+        // 安装身份。com.example 是官方保留的示例前缀，Play 直接拒收，也可能跟别人
+        // 同样偷懒的包名撞车（撞了就互相覆盖）。io.github.<账号> 是 GitHub Pages
+        // 的域名，是实际控制的域名，不必另外买。
+        //
+        // 注意这跟下面的 namespace（Java 包名，仍是 com.example.jizhang）是两回事：
+        // 只有 applicationId 决定系统眼里"这是哪个应用"，所以源码一个字都不用改。
+        applicationId "io.github.ericlin09.jizhang"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -34,7 +40,18 @@ android {
         cn {
             dimension "market"
             applicationIdSuffix ".cn"
-            versionNameSuffix "-cn"
+        }
+    }
+
+    // APK 文件名。默认产出 app-cn-release.apk，分享给别人时看不出是什么，
+    // 每次都要手动改名。桌面显示名跟着 flavor 走，这里也照搬同一套叫法。
+    // （文件名只影响传输过程，装上后显示的是 strings.xml 里的 app_name。）
+    def apkLabel = [global: '记账本', cn: '记账簿']
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def label = apkLabel[variant.flavorName] ?: variant.flavorName
+            def suffix = variant.buildType.name == 'release' ? '' : "-${variant.buildType.name}"
+            outputFileName = "${label}-${variant.versionName}${suffix}.apk"
         }
     }
 
@@ -51,7 +68,14 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // R8 裁剪 + 混淆。这个应用没有要保护的逻辑，开它是为了体积：依赖里
+            // appcompat/material/recyclerview 绝大部分用不到。
+            // 代码里没有任何反射（Class.forName / newInstance 全无），XML 引用的
+            // PieChartView 由默认规则的 View 构造器保留，所以风险很低。
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
             if (keystorePropsFile.exists()) {
                 signingConfig signingConfigs.release
             }

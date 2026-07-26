@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
             java.util.Calendar prev = (java.util.Calendar) monthCal.clone();
             prev.add(java.util.Calendar.MONTH, -1);
             String ym = new SimpleDateFormat("yyyy-MM", Locale.CHINA).format(prev.getTime());
-            if (ym.compareTo(DbHelper.START_YM) < 0) return;   // 账本从 2026-07 开始
+            if (ym.compareTo(db.startYm()) < 0) return;   // 不早于最早一条记录所在的月份
             monthCal.add(java.util.Calendar.MONTH, -1);
             refresh();
         });

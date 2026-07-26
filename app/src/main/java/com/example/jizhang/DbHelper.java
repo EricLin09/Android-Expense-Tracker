@@ -12,8 +12,12 @@ import java.util.List;
 /** 本地 SQLite 数据库，所有账目都存在手机上，不联网。 */
 public class DbHelper extends SQLiteOpenHelper {
 
-    /** 账本起点：2026 年 7 月开始记，界面不往前翻 */
-    public static final String START_YM = "2026-07";
+    /**
+     * 账本起点缓存：翻月份、画趋势图都会频繁问，而它只在写入更早的记录时才变。
+     * 静态是有意的——每个 Activity 各自 new 一个 DbHelper，缓存必须跨实例共享，
+     * 否则在 AddActivity 里补一笔更早的账，返回首页时起点还是旧的。
+     */
+    private static volatile String startYmCache;
 
     private static final String DB_NAME = "jizhang.db";
     private static final int DB_VERSION = 4;   // v4: 周期记账规则表
@@ -67,6 +71,41 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * 账本起点：界面不往这个月份之前翻。
+     *
+     * 取最早一条记录所在的月份；一条记录都没有时就是当月。
+     *
+     * 原先这里写死 "2026-07"——那是我自己开始记账的月份。别人装上、或者导入更早的
+     * 银行流水时，那些记录会正常存进数据库，却在界面上永远翻不到，看起来像丢了数据。
+     */
+    public String startYm() {
+        String s = startYmCache;
+        if (s != null) return s;
+        synchronized (DbHelper.class) {
+            if (startYmCache == null) startYmCache = queryStartYm();
+            return startYmCache;
+        }
+    }
+
+    private String queryStartYm() {
+        try (Cursor c = getReadableDatabase().rawQuery("SELECT MIN(date) FROM records", null)) {
+            if (c.moveToFirst()) {
+                String min = c.getString(0);
+                if (min != null && min.length() >= 7) return min.substring(0, 7);
+            }
+        } catch (Exception ignored) {
+            // 查不出来就退回当月：界面翻不到历史，总好过崩溃
+        }
+        return new java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.CHINA)
+                .format(new java.util.Date());
+    }
+
+    /** 记录增删改后调用：可能出现了更早的记录，起点要重算。 */
+    private static void invalidateStartYm() {
+        startYmCache = null;
+    }
+
     public long insert(Record r) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -77,6 +116,7 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put("date", r.date);
         cv.put("currency", r.currency == null ? Currencies.DEFAULT : r.currency);
         cv.put("source", r.source);
+        invalidateStartYm();
         return db.insert("records", null, cv);
     }
 
@@ -89,10 +129,12 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put("note", r.note);
         cv.put("date", r.date);
         cv.put("currency", r.currency == null ? Currencies.DEFAULT : r.currency);
+        invalidateStartYm();      // 日期可能被改到更早
         db.update("records", cv, "id=?", new String[]{String.valueOf(r.id)});
     }
 
     public void delete(long id) {
+        invalidateStartYm();      // 删掉的可能正是最早那条
         getWritableDatabase().delete("records", "id=?", new String[]{String.valueOf(id)});
     }
 
