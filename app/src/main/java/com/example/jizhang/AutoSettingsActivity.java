@@ -331,40 +331,39 @@ public class AutoSettingsActivity extends AppCompatActivity {
     }
 
     private void importCsv(android.net.Uri uri) {
-        int ok = 0, bad = 0, dup = 0, autoCat = 0;
+        int ok = 0, bad = 0, dup = 0, autoCat = 0, bank = 0;
         java.util.Set<String> existing = db.allDedupeKeys();
         try (java.io.BufferedReader br = new java.io.BufferedReader(
                 new java.io.InputStreamReader(getContentResolver().openInputStream(uri),
                         java.nio.charset.StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.startsWith("﻿")) line = line.substring(1);
+                if (line.startsWith("\ufeff")) line = line.substring(1);
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("类型")) continue;
                 java.util.List<String> f = parseCsvLine(line);
-                if (f.size() < 6) { bad++; continue; }
                 try {
-                    Record r = new Record();
-                    r.type = "收入".equals(f.get(0)) ? 1 : 0;
-                    r.amount = Double.parseDouble(f.get(1));
-                    r.category = f.get(2);
-                    r.note = f.get(3);
-                    r.date = f.get(4);
-                    r.currency = f.get(5);
-                    r.source = f.size() > 6 ? Backup.sourceOf(f.get(6)) : 0;
-                    // 分类为空或「待分类」时查一次商户表。银行流水导出的 CSV 往往没有分类列，
-                    // 而商户表恰恰是拿这类英文商户描述调出来的——不在这里接上，它就只能服务
-                    // 通知路径那部分记录。只查表不调模型：导入是批量的，逐条走网络不合适。
+                    Record r = isBankRow(f) ? parseBankRow(f) : parseOwnRow(f);
+                    if (r == null) { bad++; continue; }
+                    if (isBankRow(f)) bank++;
+
+                    // 分类为空或「待分类」时查一次商户表。银行导出的流水没有分类列，而商户表
+                    // 恰恰是拿这类英文商户描述调出来的——不在这里接上，它就只能服务通知路径。
+                    // 只查表不调模型：导入是批量的，逐条走网络不合适。收入不查，商户表只有支出分类。
                     if (r.type == 0 && (r.category == null || r.category.trim().isEmpty()
                             || CategoryClassifier.UNCATEGORIZED.equals(r.category))) {
                         String hit = CategoryClassifier.byRules(this, r.note);
                         r.category = hit != null ? hit : CategoryClassifier.UNCATEGORIZED;
                         if (hit != null) autoCat++;
                     }
+                    if (r.category == null || r.category.trim().isEmpty()) {
+                        r.category = CategoryClassifier.UNCATEGORIZED;
+                    }
                     if (r.amount <= 0 || !r.date.matches("\\d{4}-\\d{2}-\\d{2}")) { bad++; continue; }
-                    // 已有完全相同的记录（重复导入同一份备份）就跳过，不追加
+                    // 已有完全相同的记录（重复导入同一份备份/有重叠的流水）就跳过，不追加
                     if (existing.contains(DbHelper.dedupeKey(r))) { dup++; continue; }
                     db.insert(r);
+                    existing.add(DbHelper.dedupeKey(r));   // 同一份文件里的重复行也要挡掉
                     ok++;
                 } catch (Exception e) {
                     bad++;
@@ -372,6 +371,7 @@ public class AutoSettingsActivity extends AppCompatActivity {
             }
             WidgetProvider.refresh(this);
             Toast.makeText(this, "已导入 " + ok + " 笔"
+                            + (bank > 0 ? "（识别为银行流水）" : "")
                             + (autoCat > 0 ? "，其中 " + autoCat + " 笔按商户表自动分类" : "")
                             + (dup > 0 ? "，跳过重复 " + dup + " 笔" : "")
                             + (bad > 0 ? "，坏行 " + bad : ""),
@@ -432,6 +432,55 @@ public class AutoSettingsActivity extends AppCompatActivity {
     // ==================== 智能分类 ====================
 
     /** 详情在 SmartCategoryActivity，这里只显示摘要并跳转 */
+    /**
+     * 是否是银行导出的流水行。CommBank 的格式是 4 列、无表头：
+     * {@code 22/07/2026,"-3.00","商户描述 Card xx8782 Value Date: 18/07/2026","+79.95"}
+     * 判别特征取「4 列 + 首列是 dd/MM/yyyy」，与本 App 自己导出的 7 列格式不会混淆。
+     */
+    private boolean isBankRow(java.util.List<String> f) {
+        return f.size() == 4 && f.get(0).trim().matches("\\d{2}/\\d{2}/\\d{4}");
+    }
+
+    /**
+     * 解析银行流水行。金额带正负号：负数是支出，正数是收入。
+     *
+     * 备注里会去掉 "Card xx8782"、"Value Date: dd/MM/yyyy" 这类固定噪音——它们对分类
+     * 和阅读都没有价值，留着只会让列表里的备注又长又乱。商户名本身一个字不动。
+     */
+    private Record parseBankRow(java.util.List<String> f) {
+        String[] d = f.get(0).trim().split("/");
+        if (d.length != 3) return null;
+        double amt = Double.parseDouble(f.get(1).replace("+", "").replace(",", "").trim());
+
+        Record r = new Record();
+        r.type = amt < 0 ? 0 : 1;
+        r.amount = Math.abs(amt);
+        r.date = d[2] + "-" + d[1] + "-" + d[0];      // dd/MM/yyyy -> yyyy-MM-dd
+        r.note = f.get(2)
+                .replaceAll("(?i)Card xx\\d+", "")
+                .replaceAll("(?i)Value Date:\\s*\\d{2}/\\d{2}/\\d{4}", "")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+        r.currency = "AUD";                            // CommBank 账户是澳元户口
+        r.category = CategoryClassifier.UNCATEGORIZED; // 交给下面的商户表；收入保持待分类
+        r.source = 0;
+        return r;
+    }
+
+    /** 解析本 App 自己导出的 7 列格式 */
+    private Record parseOwnRow(java.util.List<String> f) {
+        if (f.size() < 6) return null;
+        Record r = new Record();
+        r.type = "收入".equals(f.get(0)) ? 1 : 0;
+        r.amount = Double.parseDouble(f.get(1));
+        r.category = f.get(2);
+        r.note = f.get(3);
+        r.date = f.get(4);
+        r.currency = f.get(5);
+        r.source = f.size() > 6 ? Backup.sourceOf(f.get(6)) : 0;
+        return r;
+    }
+
     private void setupSmartCategory() {
         findViewById(R.id.rowSmartCategory).setOnClickListener(
                 v -> startActivity(new Intent(this, SmartCategoryActivity.class)));
