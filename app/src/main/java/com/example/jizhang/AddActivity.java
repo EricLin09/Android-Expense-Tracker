@@ -38,6 +38,7 @@ public class AddActivity extends AppCompatActivity {
     private static final String KEY_CURRENCY = "last_currency";
 
     private long editId = -1;        // >=0 表示编辑已有记录
+    private String originalCategory = null;   // 编辑前的分类，用来判断用户是否改过
     private boolean expense = true;
     private String selectedCategory = null;
     private String selectedCurrency = Currencies.DEFAULT;
@@ -84,6 +85,7 @@ public class AddActivity extends AppCompatActivity {
         editId = getIntent().getLongExtra(EXTRA_ID, -1);
         Record editing = !recurringMode && editId >= 0 ? db.queryById(editId) : null;
         if (editing != null) {
+            originalCategory = editing.category;
             loadForEdit(editing);
         } else {
             editId = -1;
@@ -635,8 +637,92 @@ public class AddActivity extends AppCompatActivity {
             Toast.makeText(this, "已保存，继续记", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "已保存", Toast.LENGTH_SHORT).show();
+            // 用户手动纠正了某条支出的分类 —— 这是唯一能确定「这个商户该归哪类」的时刻，
+            // 顺手问一句要不要记进个人商户表，下次同一商户就不会再错。
+            if (offerRememberRule(r)) return;    // 面板关闭时再 finish
             finish();
         }
+    }
+
+    /**
+     * 编辑支出记录且改动了分类时，弹面板问是否记成商户规则。
+     * @return true 表示弹了面板（调用方不要立刻 finish）
+     */
+    private boolean offerRememberRule(Record r) {
+        if (editId < 0 || r.type != 0) return false;
+        if (originalCategory == null || originalCategory.equals(r.category)) return false;
+        String guess = MerchantRules.guessKeyword(r.note);
+        if (guess.isEmpty()) return false;
+
+        LinearLayout root = Sheets.container(this);
+
+        TextView title = new TextView(this);
+        title.setText("以后都归到「" + r.category + "」？");
+        title.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
+        title.setTextSize(17);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, dp(6), 0, dp(6));
+        root.addView(title);
+
+        TextView hint = new TextView(this);
+        hint.setText("备注里含有下面这个词的记录会自动归类。可以改成更短、更准的写法。");
+        hint.setTextColor(ContextCompat.getColor(this, R.color.textSecondary));
+        hint.setTextSize(13);
+        hint.setGravity(Gravity.CENTER);
+        hint.setPadding(dp(4), 0, dp(4), dp(14));
+        root.addView(hint);
+
+        EditText et = new EditText(this);
+        et.setText(guess);
+        et.setSingleLine(true);
+        et.setTextColor(ContextCompat.getColor(this, R.color.textPrimary));
+        et.setTextSize(16);
+        et.setGravity(Gravity.CENTER);
+        et.setBackgroundResource(R.drawable.bg_card);
+        et.setPadding(dp(16), dp(13), dp(16), dp(13));
+        et.setSelection(guess.length());
+        root.addView(et);
+
+        TextView ok = new TextView(this);
+        ok.setText("记住");
+        ok.setTextColor(0xFFFFFFFF);
+        ok.setTextSize(16);
+        ok.setTypeface(null, android.graphics.Typeface.BOLD);
+        ok.setGravity(Gravity.CENTER);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setColor(ContextCompat.getColor(this, R.color.accent));
+        bg.setCornerRadius(dp(14));
+        ok.setBackground(bg);
+        LinearLayout.LayoutParams olp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(50));
+        olp.topMargin = dp(14);
+        ok.setLayoutParams(olp);
+        root.addView(ok);
+
+        TextView skip = new TextView(this);
+        skip.setText("这次不用");
+        skip.setTextColor(ContextCompat.getColor(this, R.color.textSecondary));
+        skip.setTextSize(15);
+        skip.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(46));
+        slp.topMargin = dp(6);
+        skip.setLayoutParams(slp);
+        root.addView(skip);
+
+        com.google.android.material.bottomsheet.BottomSheetDialog d = Sheets.show(this, root);
+        d.setOnDismissListener(x -> finish());
+        ok.setOnClickListener(v -> {
+            String kw = et.getText().toString().trim();
+            boolean saved = MerchantRules.appendUser(this, kw, r.category);
+            Toast.makeText(this,
+                    saved ? "已记住：" + kw + " → " + r.category : "没有写入（关键词为空或已存在）",
+                    Toast.LENGTH_SHORT).show();
+            d.dismiss();
+        });
+        skip.setOnClickListener(v -> d.dismiss());
+        return true;
     }
 
     /** 保存周期记账规则；到期的记录由首页打开时统一生成 */

@@ -172,6 +172,96 @@ public class MerchantRules {
         return userSize(ctx);
     }
 
+    /**
+     * 往个人商户表追加一条规则。用户在编辑页改完分类后「以后都归到 X」走这里。
+     * @return true 表示写入成功；关键词为空或已存在完全相同的行时返回 false
+     */
+    public static boolean appendUser(Context ctx, String keyword, String category) {
+        if (keyword == null || category == null) return false;
+        String kw = keyword.trim();
+        if (kw.isEmpty() || kw.contains("\t")) return false;
+
+        String line = kw + "\t" + category;
+        File f = userFile(ctx);
+        try {
+            if (f.exists()) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                        new FileInputStream(f), StandardCharsets.UTF_8))) {
+                    String l;
+                    while ((l = br.readLine()) != null) {
+                        if (l.trim().equalsIgnoreCase(line)) return false;   // 已有同样的规则
+                    }
+                }
+            }
+            boolean needNewline = f.exists() && f.length() > 0;
+            try (FileOutputStream out = new FileOutputStream(f, true)) {
+                StringBuilder sb = new StringBuilder();
+                if (needNewline) sb.append('\n');
+                sb.append(line).append('\n');
+                out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        synchronized (MerchantRules.class) { userRules = null; }
+        return true;
+    }
+
+    /**
+     * 从备注里猜一个商户关键词，供「以后都归到 X」预填。
+     *
+     * 只是个起点，用户可以改——猜错的代价是往表里写一条没用的规则，所以宁可保守：
+     * 去掉自动记账前缀和银行流水的固定噪音，取最长的一段字母/中文，太短就返回空。
+     */
+    public static String guessKeyword(String note) {
+        if (note == null) return "";
+        String s = note;
+        int sep = s.lastIndexOf(" · ");           // "自动记账 · 支付宝 · 付款给星巴克"
+        if (sep >= 0) s = s.substring(sep + 3);
+        s = s.replace('*', ' ')                    // "UBER *EATS" 的星号是分隔符，不能当断点
+             .replaceAll("(?i)Card xx\\d+|Value Date:\\s*\\d{2}/\\d{2}/\\d{4}", " ")
+             .replaceAll("付款给|收款方[:：]?|商户全称[:：]?", " ")
+             .replaceAll("\\s{2,}", " ")
+             .trim();
+
+        // 中文商户名没有空格，取最长的一段汉字即可
+        if (s.matches(".*[\\u4e00-\\u9fa5].*")) {
+            String best = "";
+            for (String part : s.split("[^\\u4e00-\\u9fa5]+")) {
+                if (part.length() > best.length()) best = part;
+            }
+            return best.length() >= 2 ? best : "";
+        }
+
+        // 英文银行描述里商户名几乎总在最前面，后面是门店号、郊区、州名、国别。按词取前缀，
+        // 遇到含数字的词、公司后缀/地区码就停。
+        //
+        // 只取两个词是有意的：关键词只需要能「匹配上」，不需要完整——"TIAN SHUN" 照样命中
+        // "TIAN SHUN HE PTY LTD"，而更短意味着能覆盖更多写法变体。短拉丁词有词边界保护，
+        // 不会误伤。
+        String[] tokens = s.split("\\s+");
+        StringBuilder out = new StringBuilder();
+        int taken = 0;
+        for (String t : tokens) {
+            if (t.isEmpty()) continue;
+            boolean noise = t.matches(".*\\d.*")
+                    || t.matches("(?i)PTY|LTD|INC|AU|AUS|USA|NS|NSW|VIC|QLD|WA|SA|TAS|ACT|CA");
+            if (noise) break;
+            out.append(taken > 0 ? " " : "").append(t);
+            taken++;
+            // 首词形如域名（APPLE.COM/BILL）时它本身就是完整商户名，后面的都是地名
+            if (t.contains(".") || t.contains("/")) break;
+            if (taken >= 2) break;
+        }
+        String best = out.toString().trim();
+        if (best.length() > 24) {                     // 截断退回到词边界，不切在词中间
+            best = best.substring(0, 24);
+            int sp = best.lastIndexOf(' ');
+            if (sp > 0) best = best.substring(0, sp);
+        }
+        return best.length() >= 2 ? best.trim() : "";
+    }
+
     /** 删除个人商户表。 */
     public static void clearUser(Context ctx) {
         File f = userFile(ctx);

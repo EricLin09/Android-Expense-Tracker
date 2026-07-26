@@ -102,10 +102,12 @@ public class StatsActivity extends AppCompatActivity {
 
     private void showCurrencyMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
-        menu.getMenu().add(0, -1, 0, "总览（人民币 + 澳元）");
+        // 与首页 showViewMenu 保持一致：总览 / 人民币 CNY / 澳元 AUD
+        menu.getMenu().add(0, -1, 0, "总览");
         String[] codes = Currencies.codes();
         for (int i = 0; i < codes.length; i++) {
-            menu.getMenu().add(0, i, i + 1, codes[i] + "  " + Currencies.symbol(codes[i]));
+            menu.getMenu().add(0, i, i + 1,
+                    Currencies.name(codes[i]) + "  " + codes[i]);
         }
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() < 0) {

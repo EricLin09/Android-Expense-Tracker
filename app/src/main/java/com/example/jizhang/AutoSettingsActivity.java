@@ -331,7 +331,7 @@ public class AutoSettingsActivity extends AppCompatActivity {
     }
 
     private void importCsv(android.net.Uri uri) {
-        int ok = 0, bad = 0, dup = 0;
+        int ok = 0, bad = 0, dup = 0, autoCat = 0;
         java.util.Set<String> existing = db.allDedupeKeys();
         try (java.io.BufferedReader br = new java.io.BufferedReader(
                 new java.io.InputStreamReader(getContentResolver().openInputStream(uri),
@@ -352,6 +352,15 @@ public class AutoSettingsActivity extends AppCompatActivity {
                     r.date = f.get(4);
                     r.currency = f.get(5);
                     r.source = f.size() > 6 ? Backup.sourceOf(f.get(6)) : 0;
+                    // 分类为空或「待分类」时查一次商户表。银行流水导出的 CSV 往往没有分类列，
+                    // 而商户表恰恰是拿这类英文商户描述调出来的——不在这里接上，它就只能服务
+                    // 通知路径那部分记录。只查表不调模型：导入是批量的，逐条走网络不合适。
+                    if (r.type == 0 && (r.category == null || r.category.trim().isEmpty()
+                            || CategoryClassifier.UNCATEGORIZED.equals(r.category))) {
+                        String hit = CategoryClassifier.byRules(this, r.note);
+                        r.category = hit != null ? hit : CategoryClassifier.UNCATEGORIZED;
+                        if (hit != null) autoCat++;
+                    }
                     if (r.amount <= 0 || !r.date.matches("\\d{4}-\\d{2}-\\d{2}")) { bad++; continue; }
                     // 已有完全相同的记录（重复导入同一份备份）就跳过，不追加
                     if (existing.contains(DbHelper.dedupeKey(r))) { dup++; continue; }
@@ -363,6 +372,7 @@ public class AutoSettingsActivity extends AppCompatActivity {
             }
             WidgetProvider.refresh(this);
             Toast.makeText(this, "已导入 " + ok + " 笔"
+                            + (autoCat > 0 ? "，其中 " + autoCat + " 笔按商户表自动分类" : "")
                             + (dup > 0 ? "，跳过重复 " + dup + " 笔" : "")
                             + (bad > 0 ? "，坏行 " + bad : ""),
                     Toast.LENGTH_LONG).show();
