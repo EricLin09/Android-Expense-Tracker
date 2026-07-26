@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Jizhang" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/onAccent</item>
+        <item name="android:colorBackground">@color/appBg</item>
+        <item name="android:windowBackground">@color/appBg</item>
+        <item name="android:statusBarColor">@color/appBg</item>
+        <item name="android:navigationBarColor">@color/appBg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowAnimationStyle">@style/WindowFade</item>
+    </style>
+
+    <!-- 页面转场：进入上浮渐现，退出下沉渐隐 -->
+    <style name="WindowFade" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/act_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/act_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/act_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/act_close_exit</item>
+    </style>
+</resources>

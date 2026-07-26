@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- “自动”标签：主题色淡底，文字用主题色（运行时无需改） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#2456718F" />
+    <corners android:radius="5dp" />
+</shape>

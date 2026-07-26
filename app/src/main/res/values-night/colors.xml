@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 语义色（深色）：金属色整体提亮一档，保持低饱和 -->
+    <color name="appBg">#000000</color>
+    <color name="cardBg">#1C1C1E</color>
+    <color name="separator">#38383A</color>
+    <color name="textPrimary">#F2F1EF</color>
+    <color name="textSecondary">#989692</color>
+    <color name="textTertiary">#5A5A5E</color>
+    <color name="accent">#8FA7C2</color>
+    <color name="income">#86AC91</color>
+    <color name="expense">#C98D85</color>
+    <color name="segTrack">#2C2C2E</color>
+    <color name="onAccent">#1C1C1E</color>
+    <color name="bannerBg">#248FA7C2</color>
+    <color name="scrim">#8C000000</color>
+
+    <color name="teal">#8FA7C2</color>
+    <color name="bg">#000000</color>
+</resources>

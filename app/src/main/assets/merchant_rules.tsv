@@ -1,0 +1,323 @@
+# 商户别名表：关键词 <TAB> 分类
+# 匹配规则：对通知全文做「不区分大小写的子串匹配」；加载时按关键词长度降序排列，
+# 因此更具体的词自动优先（如 "UBER EATS" 会先于 "UBER" 命中）。
+# 分类必须是 Categories.EXPENSE 里的值，否则加载时忽略该行。
+# 命中即返回，不命中才调用本地模型。
+
+# ==================== 餐饮 ====================
+星巴克	餐饮
+瑞幸	餐饮
+麦当劳	餐饮
+肯德基	餐饮
+必胜客	餐饮
+汉堡王	餐饮
+海底捞	餐饮
+西贝	餐饮
+真功夫	餐饮
+沙县	餐饮
+兰州拉面	餐饮
+美团外卖	餐饮
+饿了么	餐饮
+喜茶	餐饮
+奈雪	餐饮
+蜜雪冰城	餐饮
+古茗	餐饮
+茶百道	餐饮
+火锅	餐饮
+烧烤	餐饮
+餐厅	餐饮
+饭店	餐饮
+食堂	餐饮
+咖啡	餐饮
+奶茶	餐饮
+早餐	餐饮
+午餐	餐饮
+晚餐	餐饮
+外卖	餐饮
+UBER EATS	餐饮
+UBEREATS	餐饮
+DOORDASH	餐饮
+MENULOG	餐饮
+DELIVEROO	餐饮
+MCDONALD	餐饮
+MACCAS	餐饮
+KFC	餐饮
+SUBWAY	餐饮
+DOMINO	餐饮
+GUZMAN	餐饮
+GRILL'D	餐饮
+NANDO	餐饮
+STARBUCKS	餐饮
+GLORIA JEAN	餐饮
+BOOST JUICE	餐饮
+ZAMBRERO	餐饮
+BETTY'S BURGERS	餐饮
+CAFE	餐饮
+CAFÉ	餐饮
+COFFEE	餐饮
+RESTAURANT	餐饮
+BAKERY	餐饮
+
+# ==================== 交通 ====================
+滴滴	交通
+高德打车	交通
+曹操出行	交通
+T3出行	交通
+花小猪	交通
+12306	交通
+铁路	交通
+地铁	交通
+公交	交通
+出租车	交通
+停车	交通
+高速	交通
+加油	交通
+中国石化	交通
+中国石油	交通
+壳牌	交通
+东方航空	交通
+南方航空	交通
+国际航空	交通
+春秋航空	交通
+机票	交通
+OPAL	交通
+TRANSPORT FOR NSW	交通
+TRANSPORTFORNSW	交通
+UBER	交通
+DIDI	交通
+OLA	交通
+13CABS	交通
+LINKT	交通
+E-TOLL	交通
+ETOLL	交通
+EASTLINK	交通
+CITYLINK	交通
+AMPOL	交通
+CALTEX	交通
+SHELL	交通
+7-ELEVEN	交通
+7 ELEVEN	交通
+UNITED PETROL	交通
+QANTAS	交通
+JETSTAR	交通
+VIRGIN AUSTRALIA	交通
+WILSON PARKING	交通
+SECURE PARKING	交通
+CARE PARK	交通
+PARKING	交通
+
+# ==================== 购物 ====================
+淘宝	购物
+天猫	购物
+京东	购物
+拼多多	购物
+唯品会	购物
+苏宁	购物
+优衣库	购物
+无印良品	购物
+名创优品	购物
+屈臣氏	购物
+沃尔玛	购物
+永辉	购物
+盒马	购物
+山姆	购物
+便利店	购物
+全家便利	购物
+罗森	购物
+超市	购物
+WOOLWORTHS	购物
+WOOLIES	购物
+COLES	购物
+ALDI	购物
+IGA	购物
+KMART	购物
+BIG W	购物
+TARGET	购物
+BUNNINGS	购物
+OFFICEWORKS	购物
+JB HI-FI	购物
+JB HIFI	购物
+HARVEY NORMAN	购物
+CHEMIST WAREHOUSE	购物
+PRICELINE	购物
+MYER	购物
+DAVID JONES	购物
+UNIQLO	购物
+COTTON ON	购物
+AMAZON	购物
+EBAY	购物
+MECCA	购物
+SEPHORA	购物
+DECATHLON	购物
+SUPERMARKET	购物
+PHARMACY	购物
+
+# ==================== 娱乐 ====================
+哔哩哔哩	娱乐
+爱奇艺	娱乐
+腾讯视频	娱乐
+优酷	娱乐
+芒果TV	娱乐
+网易云音乐	娱乐
+QQ音乐	娱乐
+王者荣耀	娱乐
+原神	娱乐
+电影	娱乐
+万达影城	娱乐
+KTV	娱乐
+健身	娱乐
+NETFLIX	娱乐
+SPOTIFY	娱乐
+DISNEY	娱乐
+BINGE	娱乐
+KAYO	娱乐
+PRIME VIDEO	娱乐
+YOUTUBE PREMIUM	娱乐
+STEAM	娱乐
+STEAMGAMES	娱乐
+NINTENDO	娱乐
+PLAYSTATION	娱乐
+XBOX	娱乐
+EVENT CINEMA	娱乐
+HOYTS	娱乐
+VILLAGE CINEMA	娱乐
+ANYTIME FITNESS	娱乐
+FITNESS FIRST	娱乐
+GOODLIFE	娱乐
+CINEMA	娱乐
+GYM	娱乐
+
+# ==================== 居住 ====================
+房租	居住
+物业	居住
+水费	居住
+电费	居住
+燃气	居住
+宽带	居住
+话费	居住
+中国移动	居住
+中国联通	居住
+中国电信	居住
+SYDNEY WATER	居住
+AGL	居住
+ORIGIN ENERGY	居住
+ENERGY AUSTRALIA	居住
+ENERGYAUSTRALIA	居住
+RED ENERGY	居住
+ALINTA	居住
+TELSTRA	居住
+OPTUS	居住
+VODAFONE	居住
+AUSSIE BROADBAND	居住
+SUPERLOOP	居住
+BELONG	居住
+TPG	居住
+REAL ESTATE	居住
+STRATA	居住
+RENT	居住
+
+# ==================== 教育 ====================
+学费	教育
+考试费	教育
+报名费	教育
+培训	教育
+新东方	教育
+网课	教育
+教材	教育
+当当	教育
+知乎盐选	教育
+UTS	教育
+UNSW	教育
+USYD	教育
+UNIVERSITY	教育
+TAFE	教育
+COURSERA	教育
+UDEMY	教育
+TEXTBOOK	教育
+TUITION	教育
+
+# ==================== 娱乐（测试中发现的缺口）====================
+PARAMOUNT	娱乐
+STAN.COM	娱乐
+CRUNCHYROLL	娱乐
+TWITCH	娱乐
+APPLE TV	娱乐
+AUDIBLE	娱乐
+
+# ==================== 购物（补充）====================
+DAN MURPHY	购物
+BWS	购物
+LIQUORLAND	购物
+FIRST CHOICE LIQUOR	购物
+
+# ==================== 其他（服务类，分类表里没有更贴切的）====================
+理发	其他
+美发	其他
+剪发	其他
+洗衣	其他
+干洗	其他
+快递	其他
+手续费	其他
+BARBER	其他
+HAIRDRESS	其他
+AUSTRALIA POST	其他
+AUSPOST	其他
+LAUNDRY	其他
+
+# ==================== 从真实 CommBank 流水提取的本地常去商户（2026-07）====================
+# 悉尼 Parramatta 一带。银行描述里 '*' 已在匹配前归一化为空格。
+# 餐饮
+TONG LI	购物
+CHICHA SAN CHEN	餐饮
+PEPPERCORN KITCHEN	餐饮
+RIVARENO	餐饮
+MAISON DE THE	餐饮
+MESSINA	餐饮
+YILAN	餐饮
+TOP CUT STEAK	餐饮
+GAGA NOODLE	餐饮
+SUSHI MUSA	餐饮
+SWANKY NOODLES	餐饮
+NAKED DUCK	餐饮
+HUNGRYPANDA	餐饮
+KICKIN INN	餐饮
+LOK LOK	餐饮
+PROFITEROLE	餐饮
+SHONE CHI	餐饮
+ADORA HANDMADE	餐饮
+GUSMAN	餐饮
+GUZMAN	餐饮
+FRESH MEAT	购物
+OCEAN TRADING	购物
+# 购物
+NIKE	购物
+H&M	购物
+HENNES	购物
+MR LIQUOR	购物
+# 居住（电信）
+FELIX MOBILE	居住
+# 其他（订阅与手续费）
+APPLE.COM/BILL	其他
+INTERNATIONAL TRANSACTION FEE	其他
+OPENAI	其他
+ANTHROPIC	其他
+
+# ==================== 医疗（自定义分类，用户没建时这些规则自动跳过）====================
+医院	医疗
+诊所	医疗
+挂号	医疗
+药房	医疗
+药店	医疗
+牙科	医疗
+体检	医疗
+宠物医院	医疗
+兽医	医疗
+MEDICAL CENTRE	医疗
+MEDICAL CENTER	医疗
+DENTAL	医疗
+DENTIST	医疗
+PATHOLOGY	医疗
+OPTOMETRIST	医疗
+PHYSIO	医疗
+VET	医疗
+GP CLINIC	医疗

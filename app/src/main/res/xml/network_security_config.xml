@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  本地模型服务（llama.cpp）跑在用户自己局域网内的备用机上，只有明文 HTTP。
+  Android 从 API 28 起默认禁止明文流量，所以这里显式放开。
+
+  注意：网络安全配置不支持 CIDR 网段，无法只对 192.168.0.0/16 放行，
+  因此只能全局允许明文。这不会影响已有的 HTTPS 调用——Rates.java 里写死了
+  https:// 的汇率接口，明文放行不会让它降级。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

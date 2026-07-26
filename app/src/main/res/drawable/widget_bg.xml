@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深石墨蓝底 + 顶部玻璃高光 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#46586C"
+                android:centerColor="#38485A"
+                android:endColor="#2A3846"
+                android:angle="135" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1FFFFFFF"
+                android:centerColor="#08FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:angle="270" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+</layer-list>

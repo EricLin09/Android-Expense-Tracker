@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="4dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_card"
+    android:foreground="@drawable/card_ripple"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="12dp">
+
+    <ImageView
+        android:id="@+id/ivCatIcon"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:padding="9dp"
+        android:background="@drawable/cat_circle"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="14dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="餐饮" />
+            <TextView
+                android:id="@+id/tvAutoTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="1dp"
+                android:text="自动"
+                android:textColor="@color/accent"
+                android:textSize="11sp"
+                android:background="@drawable/tag_bg"
+                android:visibility="gone" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/tvNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/textSecondary"
+            android:textSize="13sp"
+            android:text="备注" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/expense"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:fontFeatureSettings="tnum"
+        android:text="-0.00" />
+</LinearLayout>

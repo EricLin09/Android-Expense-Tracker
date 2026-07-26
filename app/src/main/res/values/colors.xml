@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 语义色（浅色）：低饱和金属调，底色为暖灰而非 iOS 冷灰 -->
+    <color name="appBg">#F4F3F0</color>
+    <color name="cardBg">#FFFFFF</color>
+    <color name="separator">#E7E5E1</color>
+    <color name="textPrimary">#1C1C1E</color>
+    <color name="textSecondary">#8A8884</color>
+    <color name="textTertiary">#C0BEB9</color>
+    <color name="accent">#56718F</color>
+    <color name="income">#5F8D6B</color>
+    <color name="expense">#B0655E</color>
+    <color name="segTrack">#ECEAE6</color>
+    <color name="onAccent">#FFFFFF</color>
+    <color name="bannerBg">#1456718F</color>
+    <color name="scrim">#66000000</color>
+
+    <!-- 兼容旧引用（widget / 少数残留），映射到新配色 -->
+    <color name="teal">#56718F</color>
+    <color name="teal_dark">#46607D</color>
+    <color name="bg">#F4F3F0</color>
+    <color name="income_green">#5F8D6B</color>
+    <color name="expense_red">#B0655E</color>
+</resources>

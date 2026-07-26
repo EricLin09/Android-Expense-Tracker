@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="13dp">
+
+    <!-- 顶行：日期 + 汇率 -->
+    <TextView
+        android:id="@+id/wMonth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2026-7 · 1A$≈¥4.74"
+        android:textColor="#F2FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:fontFeatureSettings="tnum" />
+
+    <!-- 弹性间隔 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal" />
+
+    <!-- 人民币 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:paddingBottom="2dp"
+                android:text="人民币"
+                android:textColor="#A6FFFFFF"
+                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/wCnyBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¥0.00"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:fontFeatureSettings="tnum" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/wCnySub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="支 ¥0.00 · 收 ¥0.00"
+            android:textColor="#A6FFFFFF"
+            android:textSize="12sp"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <!-- 弹性间隔 + 居中细分隔线 + 弹性间隔 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:orientation="horizontal"
+        android:background="#26FFFFFF" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal" />
+
+    <!-- 澳元 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:paddingBottom="2dp"
+                android:text="澳元"
+                android:textColor="#A6FFFFFF"
+                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/wAudBalance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="A$0.00"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:fontFeatureSettings="tnum" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/wAudSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="支 A$0.00 · 收 A$0.00"
+            android:textColor="#A6FFFFFF"
+            android:textSize="12sp"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <!-- 底部小间隔（比上方间隔小，内容整体更充实、底部收窄） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.35"
+        android:orientation="horizontal" />
+</LinearLayout>
