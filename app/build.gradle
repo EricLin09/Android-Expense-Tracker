@@ -61,10 +61,20 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    // 被测的是纯函数（金额解析、关键词匹配），不碰 Android API，所以跑本地 JVM
+    // 测试而不是 instrumented 测试——不需要设备，秒级反馈。
+    // MerchantRules 的方法签名里出现 Context，但测试路径不调用它的任何方法；
+    // 打开 returnDefaultValues 只是为了万一碰到桩方法时返回默认值而不是抛异常。
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    testImplementation 'junit:junit:4.13.2'
 }

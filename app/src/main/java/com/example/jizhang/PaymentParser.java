@@ -52,23 +52,33 @@ public class PaymentParser {
         return r;
     }
 
-    // 这些词后面跟的数字不是本次交易金额（如“余额1,234.56元”），除非全文只有它
+    // 这些词后面跟的数字不是本次交易金额（如“余额1,234.56元”），但它确实是个钱数，
+    // 所以降级为兜底：全文再没有别的候选时还能用
     private static final String[] NOT_AMOUNT_HINTS = {
             "余额", "结余", "积分", "话费", "优惠", "立减", "已减", "折", "红包剩", "额度"
+    };
+
+    // 这些词后面跟的是账号/单号，任何情况下都不是钱数，直接丢弃、连兜底都不做。
+    // 必须和上面那组分开：银行通知里「尾号1234」几乎总在金额之前出现，若只降级为兜底，
+    // 遇到「工商银行 尾号1234 消费25元」这种整数金额时，25 不带小数点顶不掉 1234，
+    // 就会把卡号记成金额。
+    private static final String[] NEVER_AMOUNT_HINTS = {
+            "尾号", "卡号", "账号", "帐号", "订单号", "流水号", "交易号", "商户号", "编号", "期数"
     };
 
     private static double extractAmount(String s) {
         Matcher m = AMOUNT.matcher(s);
         double best = 0, fallback = 0;
         // 取文本中最“像金额”的一个：优先带小数点的、数值合理的；
-        // 前面紧跟“余额/积分”等提示词的数字降级为兜底
+        // 前面紧跟“余额/积分”等提示词的数字降级为兜底，跟“尾号/单号”的直接丢弃
         while (m.find()) {
             String num = m.group(1).replace(",", "");
             try {
                 double v = Double.parseDouble(num);
                 if (v <= 0 || v > 10_000_000) continue;
                 boolean hasDot = num.contains(".");
-                if (isHinted(s, m.start())) {
+                if (isHinted(s, m.start(), NEVER_AMOUNT_HINTS)) continue;
+                if (isHinted(s, m.start(), NOT_AMOUNT_HINTS)) {
                     if (fallback == 0) fallback = v;
                     continue;
                 }
@@ -80,11 +90,11 @@ public class PaymentParser {
         return best > 0 ? best : fallback;
     }
 
-    /** 数字（含其货币前缀）前 6 个字符内出现了“余额”等提示词 */
-    private static boolean isHinted(String s, int matchStart) {
+    /** 数字（含其货币前缀）前 6 个字符内出现了 hints 里的提示词 */
+    private static boolean isHinted(String s, int matchStart, String[] hints) {
         int from = Math.max(0, matchStart - 6);
         String before = s.substring(from, matchStart);
-        for (String w : NOT_AMOUNT_HINTS) {
+        for (String w : hints) {
             if (before.contains(w)) return true;
         }
         return false;

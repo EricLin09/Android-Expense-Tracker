@@ -90,6 +90,19 @@ public class MerchantRules {
     }
 
     /**
+     * 单条关键词是否命中一段文本——{@link #match} 的匹配语义，剥掉了规则表的加载。
+     *
+     * 包内可见是给单元测试用的：边界规则（词边界、复数、长词放宽）是这个类里最容易
+     * 改坏的部分，而 {@link #match} 需要 Context 和 assets，在纯 JVM 测试里跑不起来。
+     */
+    static boolean matches(String text, String keyword) {
+        if (text == null || keyword == null) return false;
+        String kw = keyword.trim().toLowerCase();
+        if (kw.isEmpty()) return false;
+        return hit(normalize(text), new Rule(kw, ""));
+    }
+
+    /**
      * 拉丁关键词必须落在词边界上，否则 "UTS" 会命中 "DONUTS"、"RENT" 会命中 "CURRENT"。
      * 中文没有词边界概念，仍用子串匹配。
      */
