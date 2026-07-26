@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主题图标层：系统按壁纸取色重着色，颜色只是占位，形状才有意义 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M51,42 L30,36 L30,72 L51,76 Z
+                          M57,42 L78,36 L78,72 L57,76 Z
+                          M35,50 L47,50 L47,54 L35,54 Z
+                          M35,59 L47,59 L47,63 L35,63 Z
+                          M61,50 L73,50 L73,54 L61,54 Z" />
+</vector>

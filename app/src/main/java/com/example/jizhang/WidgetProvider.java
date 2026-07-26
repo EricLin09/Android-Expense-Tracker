@@ -40,9 +40,9 @@ public class WidgetProvider extends AppWidgetProvider {
 
         // 大数字显示结余还是总支出，跟随设置页「总览大数字」
         boolean be = MainActivity.bigExpense(context);
-        // 顶行：月份，有汇率缓存时拼上「· 1A$≈¥4.73」
+        // 顶行：月份。双币版有汇率缓存时拼上「· 1A$≈¥4.73」；单币版没有汇率，也没这个位置
         String month = new SimpleDateFormat("yyyy-M", Locale.CHINA).format(new java.util.Date());
-        String rate = Rates.label(context);
+        String rate = Flavor.DUAL_CURRENCY ? Rates.label(context) : null;
         views.setTextViewText(R.id.wMonth, rate == null ? month : month + " · " + rate);
 
         double[] cny = db.monthTotals(ym, "CNY");
@@ -51,11 +51,14 @@ public class WidgetProvider extends AppWidgetProvider {
         views.setTextColor(R.id.wCnyBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
         views.setTextViewText(R.id.wCnySub, be ? incomeOnly("¥", cny) : subText("¥", cny));
 
-        double[] aud = db.monthTotals(ym, "AUD");
-        views.setTextViewText(R.id.wAudBalance,
-                be ? expenseText("A$", aud) : balanceText("A$", aud));
-        views.setTextColor(R.id.wAudBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
-        views.setTextViewText(R.id.wAudSub, be ? incomeOnly("A$", aud) : subText("A$", aud));
+        // 单币版的 2×1 布局里没有澳元这块，连 id 都不存在——必须跳过，否则 RemoteViews 会崩
+        if (Flavor.DUAL_CURRENCY) {
+            double[] aud = db.monthTotals(ym, "AUD");
+            views.setTextViewText(R.id.wAudBalance,
+                    be ? expenseText("A$", aud) : balanceText("A$", aud));
+            views.setTextColor(R.id.wAudBalance, be ? 0xFFEFB4A8 : 0xFFFFFFFF);
+            views.setTextViewText(R.id.wAudSub, be ? incomeOnly("A$", aud) : subText("A$", aud));
+        }
 
         // 点卡片打开首页
         Intent openIntent = new Intent(context, MainActivity.class);

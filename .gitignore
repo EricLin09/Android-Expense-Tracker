@@ -19,3 +19,9 @@ local.properties
 
 # Claude Code 本地配置
 .claude/
+
+# 发布签名：密钥库和密码绝不能进仓库。
+# 丢了密钥就再也无法给已安装的用户推送更新，务必单独备份。
+keystore.properties
+*.jks
+*.keystore

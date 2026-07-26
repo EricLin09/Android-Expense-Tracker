@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  国内版 2×1 小组件。
+
+  高度只有 40~50dp，放不下双币版那种「顶行 + 两块 + 分隔线」的结构，所以改成
+  左右分栏：左边一列小字（月份 / 支收），右边一个大数字。大数字右对齐，位数
+  变长时向左伸展，不会顶到左边的标签。
+
+  id 与双币版保持一致（wRoot/wMonth/wCnyBalance/wCnySub），WidgetProvider 因此
+  只需跳过澳元那一块，不用维护两套刷新逻辑。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_bg"
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="8dp">
+
+    <!-- 左：月份 + 支/收 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/wMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2026-7"
+            android:textColor="#F2FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:fontFeatureSettings="tnum" />
+        <TextView
+            android:id="@+id/wCnySub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:text="支 ¥0 · 收 ¥0"
+            android:textColor="#A6FFFFFF"
+            android:textSize="10sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <!-- 右：大数字，右对齐，位数长了向左伸 -->
+    <TextView
+        android:id="@+id/wCnyBalance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:gravity="end"
+        android:text="¥0.00"
+        android:textColor="#FFFFFF"
+        android:textSize="19sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:fontFeatureSettings="tnum" />
+</LinearLayout>

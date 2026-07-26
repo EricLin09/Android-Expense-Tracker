@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  记账簿：翻开的账簿剪影，页面上镂空两道账目线。
+
+  为什么用实心而不是线稿：线稿版内部的账目线只能给到 4 的描边，在启动器的 48dp
+  上渲染出来不足 2px，会糊成一团——和双币版图标最初踩的是同一个坑。实心剪影
+  没有这个问题，任何尺寸都读得出形状。
+
+  账目线用 evenOdd 做成真正的镂空（而不是用近似底色去盖），底色渐变会透上来，
+  不会出现色差。
+
+  几何：可见区域是 108 画布里居中的 72×72。图形范围 x 30..78、y 36..76，
+  即 67% 宽、56% 高。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#2B3A4B"
+        android:fillType="evenOdd"
+        android:pathData="M51,42 L30,36 L30,72 L51,76 Z
+                          M57,42 L78,36 L78,72 L57,76 Z
+                          M35,50 L47,50 L47,54 L35,54 Z
+                          M35,59 L47,59 L47,63 L35,63 Z
+                          M61,50 L73,50 L73,54 L61,54 Z" />
+</vector>

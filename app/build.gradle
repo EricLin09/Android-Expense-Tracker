@@ -2,6 +2,14 @@ plugins {
     id 'com.android.application'
 }
 
+// 发布签名的密码不进仓库：放在 keystore.properties 里（已 gitignore）。
+// 文件不存在时照常构建，只是 release 会退回未签名——CI 或换机器时不会卡住。
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace 'com.example.jizhang'
     compileSdk 34
@@ -30,9 +38,23 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     compileOptions {
