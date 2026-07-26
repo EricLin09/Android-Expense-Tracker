@@ -1,4 +1,4 @@
-# Expense Tracker (记账本)
+# Expense Tracker
 
 A personal expense tracker for Android. Native Java, no backend, no analytics, no
 third-party SDKs beyond AndroidX and Material Components.
