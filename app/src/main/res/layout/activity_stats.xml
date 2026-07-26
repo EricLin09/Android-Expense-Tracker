@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -125,6 +126,18 @@
                 android:layout_height="220dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp" />
+
+            <!-- 仅总览模式可见：说明占比是折算出来的，金额是原值 -->
+            <TextView
+                android:id="@+id/tvRateNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/textTertiary"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="占比按 1 A$ = ¥4.73 折算 · 金额为原值" />
 
             <TextView
                 android:id="@+id/tvTrendTitle"

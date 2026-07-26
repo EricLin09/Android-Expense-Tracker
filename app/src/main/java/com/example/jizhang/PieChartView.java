@@ -23,6 +23,7 @@ public class PieChartView extends View {
     private final List<DbHelper.CategorySum> data = new ArrayList<>();
     private double total = 0;
     private String symbol = "¥";
+    private String[] centerLines = null;   // 非 null 时替代默认的「symbol + 合计」
     private final Paint slicePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -45,10 +46,21 @@ public class PieChartView extends View {
 
     public void setData(List<DbHelper.CategorySum> d, String symbol) {
         this.symbol = symbol;
+        this.centerLines = null;      // 回到「symbol + 合计」的默认画法
         data.clear();
         data.addAll(d);
         total = 0;
         for (DbHelper.CategorySum cs : d) total += cs.sum;
+        invalidate();
+    }
+
+    /**
+     * 覆盖圆环中心的金额行。总览模式下扇区角度是按汇率折算出来的，中心不能再画一个
+     * 折算后的合计——那是个界面上不该出现的编造数字。改为传入各币种的原值，一行一个。
+     * 必须在 {@link #setData} 之后调用（setData 会重置回默认画法）。
+     */
+    public void setCenterLines(String... lines) {
+        this.centerLines = (lines == null || lines.length == 0) ? null : lines;
         invalidate();
     }
 
@@ -108,13 +120,29 @@ public class PieChartView extends View {
         slicePaint.setShader(null);
 
         // 中心文字
+        String[] lines = centerLines != null
+                ? centerLines
+                : new String[]{ symbol + String.format("%.2f", total) };
+
+        // 行数多时压小字号，保证不越过内圈
+        float size = lines.length >= 2 ? sp(18) : sp(22);
+        float lineH = size * 1.18f;
+        // 「总支出」标题 + 金额整体在内圈里垂直居中
+        float blockH = sp(13) * 1.3f + lines.length * lineH;
+        float top = cy - blockH / 2f;
+
         textPaint.setTextSize(sp(13));
         textPaint.setColor(secondaryText);
-        canvas.drawText("总支出", cx, cy - sp(8), textPaint);
-        textPaint.setTextSize(sp(22));
+        canvas.drawText("总支出", cx, top + sp(13), textPaint);
+
+        textPaint.setTextSize(size);
         textPaint.setColor(primaryText);
         textPaint.setFakeBoldText(true);
-        canvas.drawText(symbol + String.format("%.2f", total), cx, cy + sp(18), textPaint);
+        float y = top + sp(13) * 1.3f + size;
+        for (String s : lines) {
+            canvas.drawText(s, cx, y, textPaint);
+            y += lineH;
+        }
         textPaint.setFakeBoldText(false);
     }
 
