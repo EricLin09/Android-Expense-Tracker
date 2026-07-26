@@ -25,7 +25,6 @@ public class AutoSettingsActivity extends AppCompatActivity {
     private static final int REQ_EXPORT = 11;
     private static final int REQ_IMPORT = 12;
     private static final int REQ_BACKUP_DIR = 13;
-    private static final int REQ_MERCHANT = 14;
 
     private TextView tvPermStatus, tvBackupInfo;
     private Switch swEnabled, swBackup;
@@ -146,6 +145,7 @@ public class AutoSettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        refreshSmartSummary();
         boolean granted = hasNotificationAccess();
         tvPermStatus.setText(granted ? "状态：已授权 ✓" : "状态：未授权");
         tvPermStatus.setTextColor(ContextCompat.getColor(this,
@@ -300,8 +300,6 @@ public class AutoSettingsActivity extends AppCompatActivity {
             importCsv(uri);
         } else if (requestCode == REQ_BACKUP_DIR) {
             setupBackupDir(uri);
-        } else if (requestCode == REQ_MERCHANT) {
-            importMerchantRules(uri);
         }
     }
 
@@ -423,115 +421,19 @@ public class AutoSettingsActivity extends AppCompatActivity {
 
     // ==================== 智能分类 ====================
 
-    /**
-     * 商户别名表 + 本地模型的设置区。
-     * 别名表是只读的内置资源，这里只显示条数；可配置的只有模型服务地址和开关。
-     */
+    /** 详情在 SmartCategoryActivity，这里只显示摘要并跳转 */
     private void setupSmartCategory() {
-        TextView tvRulesInfo = findViewById(R.id.tvRulesInfo);
-        Switch swLlm = findViewById(R.id.swLlm);
-        EditText etHost = findViewById(R.id.etLlmHost);
-        EditText etKey = findViewById(R.id.etLlmKey);
-        TextView btnTest = findViewById(R.id.btnLlmTest);
-        TextView btnFill = findViewById(R.id.btnLlmFill);
-
-        refreshRulesInfo(tvRulesInfo);
-
-        TextView btnMerchant = findViewById(R.id.btnMerchantImport);
-        btnMerchant.setOnClickListener(v -> {
-            Intent it = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            it.addCategory(Intent.CATEGORY_OPENABLE);
-            it.setType("*/*");
-            startActivityForResult(it, REQ_MERCHANT);
-        });
-        btnMerchant.setOnLongClickListener(v -> {
-            if (MerchantRules.userSize(this) == 0) { toast("还没有个人商户表"); return true; }
-            Sheets.confirm(this, "清除个人商户表？", "清除", () -> {
-                MerchantRules.clearUser(this);
-                refreshRulesInfo(tvRulesInfo);
-                toast("已清除");
-            });
-            return true;
-        });
-
-        swLlm.setChecked(prefs.getBoolean(LocalLlm.KEY_ENABLED, false));
-        etHost.setText(prefs.getString(LocalLlm.KEY_HOST, ""));
-        etKey.setText(prefs.getString(LocalLlm.KEY_APIKEY, ""));
-
-        // 三个控件任意变化都立刻落盘，省得用户还要找“保存”按钮
-        Runnable save = () -> LocalLlm.save(this,
-                swLlm.isChecked(),
-                etHost.getText().toString(),
-                etKey.getText().toString());
-
-        swLlm.setOnCheckedChangeListener((b, checked) -> save.run());
-        // 随输入即时落盘：靠失焦保存会漏掉「输完直接按返回键」这种常见操作
-        TextWatcher watcher = new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
-            @Override public void afterTextChanged(Editable e) { save.run(); }
-        };
-        etHost.addTextChangedListener(watcher);
-        etKey.addTextChangedListener(watcher);
-
-        btnTest.setOnClickListener(v -> {
-            save.run();
-            if (LocalLlm.host(this).isEmpty()) {
-                toast("请先填服务地址");
-                return;
-            }
-            btnTest.setEnabled(false);
-            btnTest.setText("连接中…");
-            new Thread(() -> {
-                boolean ok = LocalLlm.ping(this);
-                runOnUiThread(() -> {
-                    btnTest.setEnabled(true);
-                    btnTest.setText("测试连接");
-                    toast(ok ? "连接成功" : "连不上，检查地址和备用机上的服务是否在跑");
-                });
-            }).start();
-        });
-
-        btnFill.setOnClickListener(v -> {
-            save.run();
-            int pending = db.queryUncategorized().size();
-            if (pending == 0) {
-                toast("没有待分类的记录");
-                return;
-            }
-            btnFill.setEnabled(false);
-            new Thread(() -> {
-                int changed = CategoryClassifier.fillUncategorized(this,
-                        (done, total) -> runOnUiThread(
-                                () -> btnFill.setText("分类中 " + done + "/" + total)));
-                runOnUiThread(() -> {
-                    btnFill.setEnabled(true);
-                    btnFill.setText("批量补分类");
-                    toast("已补分类 " + changed + " 条，剩余 "
-                            + db.queryUncategorized().size() + " 条待分类");
-                });
-            }).start();
-        });
+        findViewById(R.id.rowSmartCategory).setOnClickListener(
+                v -> startActivity(new Intent(this, SmartCategoryActivity.class)));
     }
 
-    /** 内置表 + 个人表的条数展示 */
-    private void refreshRulesInfo(TextView tv) {
-        int builtin = MerchantRules.size(this);
+    /** 摘要要在从二级页返回后刷新，所以放在 onResume 里调 */
+    private void refreshSmartSummary() {
+        TextView tv = findViewById(R.id.tvSmartSummary);
         int user = MerchantRules.userSize(this);
-        tv.setText("内置商户表 " + builtin + " 条"
-                + (user > 0 ? "  ·  个人商户表 " + user + " 条" : "  ·  未导入个人商户表"));
-    }
-
-    /** 导入个人商户表：整份覆盖，存在 App 私有目录，不随应用分发 */
-    private void importMerchantRules(android.net.Uri uri) {
-        try (java.io.InputStream in = getContentResolver().openInputStream(uri)) {
-            int n = MerchantRules.importUser(this, in);
-            refreshRulesInfo(findViewById(R.id.tvRulesInfo));
-            toast(n > 0 ? "已导入 " + n + " 条个人商户规则"
-                        : "文件里没有可用规则（格式：关键词 TAB 分类）");
-        } catch (Exception e) {
-            toast("导入失败：" + e.getMessage());
-        }
+        tv.setText(user > 0
+                ? "内置 " + MerchantRules.size(this) + " · 个人 " + user
+                : "内置 " + MerchantRules.size(this) + " 条");
     }
 
     private void toast(String s) {

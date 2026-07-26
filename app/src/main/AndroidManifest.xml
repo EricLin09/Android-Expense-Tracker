@@ -31,6 +31,9 @@
             android:name=".StatsActivity"
             android:exported="false" />
         <activity
+            android:name=".SmartCategoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".AutoSettingsActivity"
             android:exported="false" />
 
