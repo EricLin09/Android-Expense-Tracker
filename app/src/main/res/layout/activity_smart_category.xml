@@ -62,32 +62,46 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card"
                 android:paddingHorizontal="16dp"
-                android:paddingVertical="12dp"
+                android:paddingVertical="14dp"
                 android:textColor="@color/textPrimary"
-                android:textSize="14sp"
-                android:text="内置商户表 0 条" />
+                android:textSize="15sp"
+                tools:text="内置商户表 271 条  ·  个人商户表 19 条" />
 
-            <TextView
-                android:id="@+id/btnMerchantImport"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_card"
-                android:gravity="center"
-                android:paddingVertical="13dp"
-                android:text="导入个人商户表"
-                android:textColor="@color/textPrimary"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginHorizontal="4dp"
-                android:textColor="@color/textSecondary"
-                android:textSize="12sp"
-                android:lineSpacingExtra="3dp"
-                android:text="先查商户表，命中即分类，不联网；没命中的记为「待分类」。\n\n内置表只收连锁品牌。常去的小店写成「关键词 + 制表符 + 分类」的文本文件导入，优先于内置表，只存在本机（长按导入可清除）。" />
+                android:foreground="@drawable/card_ripple"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp"
+                android:layout_marginTop="10dp" android:id="@+id/btnMerchantImport">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="导入个人商户表"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="每行「关键词 + 制表符 + 分类」，优先于内置表，只存本机。长按可清除。"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:contentDescription="导入" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -105,16 +119,29 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:background="@drawable/bg_card"
+                android:foreground="@drawable/card_ripple"
                 android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:layout_marginTop="10dp">
-                <TextView
+                android:paddingVertical="12dp"
+                android:layout_marginTop="0dp">
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="启用本地模型兜底"
-                    android:textColor="@color/textPrimary"
-                    android:textSize="16sp" />
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="启用本地模型兜底"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="16sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="没命中商户表的记录交给它判断"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
                 <Switch
                     android:id="@+id/swLlm"
                     android:layout_width="wrap_content"
@@ -189,8 +216,8 @@
                 android:layout_marginHorizontal="4dp"
                 android:textColor="@color/textSecondary"
                 android:textSize="12sp"
-                android:lineSpacingExtra="3dp"
-                android:text="填了自建的模型服务地址后，「批量补分类」会把待分类记录发去判断。只发往该地址，不经过第三方；服务不可用时保持「待分类」，不会写错。" />
+                android:text="请求只发往上面的地址，不经过第三方；服务不可用时记录保持「待分类」。" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

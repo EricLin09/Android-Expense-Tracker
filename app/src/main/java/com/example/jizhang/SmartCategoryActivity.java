@@ -38,7 +38,8 @@ public class SmartCategoryActivity extends AppCompatActivity {
         EditText etKey = findViewById(R.id.etLlmKey);
         TextView btnTest = findViewById(R.id.btnLlmTest);
         TextView btnFill = findViewById(R.id.btnLlmFill);
-        TextView btnMerchant = findViewById(R.id.btnMerchantImport);
+        // 这一行是「标题 + 副标题」的 LinearLayout，不是 TextView
+        android.view.View btnMerchant = findViewById(R.id.btnMerchantImport);
 
         refreshRulesInfo();
 
