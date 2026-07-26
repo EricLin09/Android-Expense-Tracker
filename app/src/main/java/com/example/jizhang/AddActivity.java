@@ -573,11 +573,10 @@ public class AddActivity extends AppCompatActivity {
             tvDate.setText(fmt.format(cal.getTime()));
             if (recurringMode) updatePeriodLabel();
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-        // 账本从 2026-07 开始，不能选更早的日期
-        Calendar min = Calendar.getInstance();
-        min.clear();
-        min.set(2026, Calendar.JULY, 1);
-        d.getDatePicker().setMinDate(min.getTimeInMillis());
+        // 不设下限。原先写死"不早于 2026-07"——那是我自己开始记账的月份，别人补记
+        // 一笔上个月的账就被挡住了。更要命的是它和账本起点互锁：起点取最早一条记录，
+        // 而这里不让录入更早的记录，起点就永远前进不了。
+        // 界面往前翻的边界由 DbHelper.startYm() 按实际数据决定，不需要在录入侧再设一道。
         d.show();
     }
 

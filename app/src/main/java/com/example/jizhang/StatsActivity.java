@@ -158,6 +158,8 @@ public class StatsActivity extends AppCompatActivity {
     private void render() {
         String ym = period();
         tvMonth.setText(ym);
+        // 空态文案跟着统计周期走（放在分支之前，总览模式也要生效）
+        pie.setEmptyText(yearMode ? "本年暂无支出" : "本月暂无支出");
         if (currency == null) {
             renderOverview(ym);
             return;
@@ -286,49 +288,55 @@ public class StatsActivity extends AppCompatActivity {
         return db.monthTotals(ym, "CNY")[0] + db.monthTotals(ym, "AUD")[0] * (rate > 0 ? rate : 0);
     }
 
-    /** 月视图：近 6 月支出柱状图（选中月高亮）；年视图：该年 12 个月，点柱子跳到单月 */
+    /** 柱状图的柱子数：月视图近 6 月，年视图近 6 年 */
+    private static final int TREND_BARS = 6;
+
+    /**
+     * 支出柱状图：月视图画近 6 个月，年视图画近 6 年。选中的那根高亮，点其它柱子跳过去。
+     *
+     * 两种模式共用同一套画法，差别只有步长（月/年）和 key 的格式。key 直接喂给
+     * {@link #monthExpense}，底层查询是 date LIKE 'key%'，所以 "2026-07" 和 "2026"
+     * 都成立——年合计不需要另写一条 SQL。
+     */
     private void renderTrend() {
         trend.removeAllViews();
-        int n;
-        String[] yms, labels;
+        int n = TREND_BARS;
+        int step = yearMode ? Calendar.YEAR : Calendar.MONTH;
+        SimpleDateFormat keyFmt = yearMode ? fmtYear : fmt;
+        tvTrendTitle.setText(yearMode ? "近 6 年支出" : "近 6 月支出");
+
         Calendar c = (Calendar) cal.clone();
-        if (yearMode) {
-            tvTrendTitle.setText("各月支出");
-            n = 12;
-            c.set(Calendar.MONTH, Calendar.JANUARY);
-        } else {
-            tvTrendTitle.setText("近 6 月支出");
-            n = 6;
-            c.add(Calendar.MONTH, -5);
-        }
-        yms = new String[n];
-        labels = new String[n];
+        c.add(step, -(n - 1));
+
+        String[] keys = new String[n];
+        String[] labels = new String[n];
         double[] sums = new double[n];
         double max = 0;
         for (int i = 0; i < n; i++) {
-            yms[i] = fmt.format(c.getTime());
-            labels[i] = (c.get(Calendar.MONTH) + 1) + "月";
-            sums[i] = monthExpense(yms[i]);
+            keys[i] = keyFmt.format(c.getTime());
+            labels[i] = yearMode ? keys[i] : (c.get(Calendar.MONTH) + 1) + "月";
+            sums[i] = monthExpense(keys[i]);
             if (sums[i] > max) max = sums[i];
-            c.add(Calendar.MONTH, 1);
+            c.add(step, 1);
         }
 
         int accent = ContextCompat.getColor(this, R.color.accent);
-        String selYm = yearMode ? "" : fmt.format(cal.getTime());
+        String selKey = keyFmt.format(cal.getTime());
         String sym = currency == null ? null : Currencies.symbol(currency);
-        int barWidth = yearMode ? dp(13) : dp(22);
-        String startYm = db.startYm();
+        int barWidth = dp(22);
+        // 账本起点之前的柱子不画：年视图只比年份
+        String floor = yearMode ? db.startYm().substring(0, 4) : db.startYm();
 
         for (int i = 0; i < n; i++) {
-            if (yms[i].compareTo(startYm) < 0) continue;   // 账本起点之前的月份不画
+            if (keys[i].compareTo(floor) < 0) continue;
             LinearLayout col = new LinearLayout(this);
             col.setOrientation(LinearLayout.VERTICAL);
             col.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
             col.setLayoutParams(new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-            boolean selected = yms[i].equals(selYm);
+            boolean selected = keys[i].equals(selKey);
 
-            // 金额（只给选中月显示，避免拥挤）。总览模式下柱高是折算值，
+            // 金额（只给选中的那根显示，避免拥挤）。总览模式下柱高是折算值，
             // 标上去就成了「界面上出现折算后金额」——那两个数已经在饼图中心，这里直接不标。
             if (selected && sums[i] > 0 && sym != null) {
                 TextView amt = new TextView(this);
@@ -355,7 +363,7 @@ public class StatsActivity extends AppCompatActivity {
             label.setText(labels[i]);
             label.setTextColor(ContextCompat.getColor(this,
                     selected ? R.color.textPrimary : R.color.textSecondary));
-            label.setTextSize(yearMode ? 9 : 11);
+            label.setTextSize(11);
             LinearLayout.LayoutParams llp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             llp.topMargin = dp(6);
@@ -363,15 +371,10 @@ public class StatsActivity extends AppCompatActivity {
             col.addView(label);
 
             final int idx = i;
+            // 点哪根跳哪根，停在当前模式：月视图跳到那个月，年视图跳到那一年
             col.setOnClickListener(v -> {
-                if (yearMode) {
-                    // 年视图点某个月：跳到该月的月视图
-                    cal.set(Calendar.MONTH, idx);
-                    setMode(false);
-                } else {
-                    cal.add(Calendar.MONTH, idx - 5);
-                    render();
-                }
+                cal.add(step, idx - (n - 1));
+                render();
             });
             trend.addView(col);
         }

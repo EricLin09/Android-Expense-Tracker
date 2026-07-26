@@ -31,6 +31,7 @@ public class PieChartView extends View {
     private final int bgColor;
     private final int primaryText;
     private final int secondaryText;
+    private String emptyText = "本月暂无支出";
 
     public PieChartView(Context c, AttributeSet a) {
         super(c, a);
@@ -42,6 +43,19 @@ public class PieChartView extends View {
         shadowPaint.setStyle(Paint.Style.STROKE);
         // 阴影层需要软件绘制
         setLayerType(LAYER_TYPE_SOFTWARE, null);
+    }
+
+    /**
+     * 没有支出时圆环中央的那句话。默认按月说，年视图要改成「本年暂无支出」——
+     * 空态文案跟着当前统计周期走，否则年视图里会写着「本月」。
+     *
+     * 不放进 {@link #setData} 是因为它跟数据无关：周期换了就该换，数据换了不该被重置。
+     */
+    public void setEmptyText(String text) {
+        if (text != null && !text.equals(emptyText)) {
+            emptyText = text;
+            invalidate();
+        }
     }
 
     public void setData(List<DbHelper.CategorySum> d, String symbol) {
@@ -79,7 +93,7 @@ public class PieChartView extends View {
         if (total <= 0) {
             textPaint.setTextSize(sp(15));
             textPaint.setColor(secondaryText);
-            canvas.drawText("本月暂无支出", cx, cy + sp(5), textPaint);
+            canvas.drawText(emptyText, cx, cy + sp(5), textPaint);
             return;
         }
 
