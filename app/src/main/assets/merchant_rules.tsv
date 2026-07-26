@@ -44,6 +44,7 @@ MACCAS	餐饮
 KFC	餐饮
 SUBWAY	餐饮
 DOMINO	餐饮
+GUSMAN	餐饮
 GUZMAN	餐饮
 GRILL'D	餐饮
 NANDO	餐饮
@@ -226,9 +227,6 @@ RENT	居住
 教材	教育
 当当	教育
 知乎盐选	教育
-UTS	教育
-UNSW	教育
-USYD	教育
 UNIVERSITY	教育
 TAFE	教育
 COURSERA	教育
@@ -264,31 +262,14 @@ AUSTRALIA POST	其他
 AUSPOST	其他
 LAUNDRY	其他
 
-# ==================== 从真实 CommBank 流水提取的本地常去商户（2026-07）====================
-# 悉尼 Parramatta 一带。银行描述里 '*' 已在匹配前归一化为空格。
+# ==================== 澳洲连锁与常见订阅 ====================
+# 只收录全国性连锁品牌与通用服务词。单店/本地小店请写进「个人商户表」，
+# 那份表存在 App 私有目录、不随应用分发（设置页可导入）。
 # 餐饮
-TONG LI	购物
 CHICHA SAN CHEN	餐饮
-PEPPERCORN KITCHEN	餐饮
 RIVARENO	餐饮
-MAISON DE THE	餐饮
 MESSINA	餐饮
-YILAN	餐饮
-TOP CUT STEAK	餐饮
-GAGA NOODLE	餐饮
-SUSHI MUSA	餐饮
-SWANKY NOODLES	餐饮
-NAKED DUCK	餐饮
 HUNGRYPANDA	餐饮
-KICKIN INN	餐饮
-LOK LOK	餐饮
-PROFITEROLE	餐饮
-SHONE CHI	餐饮
-ADORA HANDMADE	餐饮
-GUSMAN	餐饮
-GUZMAN	餐饮
-FRESH MEAT	购物
-OCEAN TRADING	购物
 # 购物
 NIKE	购物
 H&M	购物

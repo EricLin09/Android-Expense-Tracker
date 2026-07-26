@@ -25,6 +25,7 @@ public class AutoSettingsActivity extends AppCompatActivity {
     private static final int REQ_EXPORT = 11;
     private static final int REQ_IMPORT = 12;
     private static final int REQ_BACKUP_DIR = 13;
+    private static final int REQ_MERCHANT = 14;
 
     private TextView tvPermStatus, tvBackupInfo;
     private Switch swEnabled, swBackup;
@@ -299,6 +300,8 @@ public class AutoSettingsActivity extends AppCompatActivity {
             importCsv(uri);
         } else if (requestCode == REQ_BACKUP_DIR) {
             setupBackupDir(uri);
+        } else if (requestCode == REQ_MERCHANT) {
+            importMerchantRules(uri);
         }
     }
 
@@ -432,7 +435,24 @@ public class AutoSettingsActivity extends AppCompatActivity {
         TextView btnTest = findViewById(R.id.btnLlmTest);
         TextView btnFill = findViewById(R.id.btnLlmFill);
 
-        tvRulesInfo.setText("商户别名表：" + MerchantRules.size(this) + " 条规则（内置）");
+        refreshRulesInfo(tvRulesInfo);
+
+        TextView btnMerchant = findViewById(R.id.btnMerchantImport);
+        btnMerchant.setOnClickListener(v -> {
+            Intent it = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            it.addCategory(Intent.CATEGORY_OPENABLE);
+            it.setType("*/*");
+            startActivityForResult(it, REQ_MERCHANT);
+        });
+        btnMerchant.setOnLongClickListener(v -> {
+            if (MerchantRules.userSize(this) == 0) { toast("还没有个人商户表"); return true; }
+            Sheets.confirm(this, "清除个人商户表？", "清除", () -> {
+                MerchantRules.clearUser(this);
+                refreshRulesInfo(tvRulesInfo);
+                toast("已清除");
+            });
+            return true;
+        });
 
         swLlm.setChecked(prefs.getBoolean(LocalLlm.KEY_ENABLED, false));
         etHost.setText(prefs.getString(LocalLlm.KEY_HOST, ""));
@@ -492,6 +512,26 @@ public class AutoSettingsActivity extends AppCompatActivity {
                 });
             }).start();
         });
+    }
+
+    /** 内置表 + 个人表的条数展示 */
+    private void refreshRulesInfo(TextView tv) {
+        int builtin = MerchantRules.size(this);
+        int user = MerchantRules.userSize(this);
+        tv.setText("内置商户表 " + builtin + " 条"
+                + (user > 0 ? "  ·  个人商户表 " + user + " 条" : "  ·  未导入个人商户表"));
+    }
+
+    /** 导入个人商户表：整份覆盖，存在 App 私有目录，不随应用分发 */
+    private void importMerchantRules(android.net.Uri uri) {
+        try (java.io.InputStream in = getContentResolver().openInputStream(uri)) {
+            int n = MerchantRules.importUser(this, in);
+            refreshRulesInfo(findViewById(R.id.tvRulesInfo));
+            toast(n > 0 ? "已导入 " + n + " 条个人商户规则"
+                        : "文件里没有可用规则（格式：关键词 TAB 分类）");
+        } catch (Exception e) {
+            toast("导入失败：" + e.getMessage());
+        }
     }
 
     private void toast(String s) {

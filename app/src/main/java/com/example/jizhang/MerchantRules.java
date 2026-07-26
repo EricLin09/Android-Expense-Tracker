@@ -3,6 +3,11 @@ package com.example.jizhang;
 import android.content.Context;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -13,17 +18,26 @@ import java.util.List;
 /**
  * 商户别名表：把通知文本里的商户名直接映射到分类，命中就不必调用本地模型。
  *
- * 表本身在 assets/merchant_rules.tsv，格式为「关键词 TAB 分类」。加载时按关键词长度
- * 降序排序，因此更具体的词天然优先——"UBER EATS" 会在 "UBER" 之前被检查。
+ * 两级表，格式都是「关键词 TAB 分类」：
+ *  - **内置表** `assets/merchant_rules.tsv`——只收录全国性连锁与通用服务词，
+ *    随应用分发，可公开；
+ *  - **个人商户表** `filesDir/merchant_rules_user.tsv`——用户自己常去的单店、
+ *    本地小店。存在 App 私有目录，**不进代码仓库、不随应用分发**，因为一串
+ *    具体小店名足以反推出居住地和活动范围。设置页可导入。
  *
- * 只认 Categories.EXPENSE 里存在的分类；表里写了别的值会被忽略，避免改分类体系后
- * 产生指向不存在分类的记录。
+ * 匹配时**个人表优先**，因此可以用它覆盖内置规则。两张表内部各自按关键词长度
+ * 降序排列，更具体的词天然先命中——"UBER EATS" 会在 "UBER" 之前被检查。
+ *
+ * 只认当前存在的分类（预设 + 用户自定义）；指向不存在分类的行会被忽略。
  */
 public class MerchantRules {
 
     private static final String ASSET = "merchant_rules.tsv";
+    /** 个人商户表在 App 私有目录里的文件名 */
+    public  static final String USER_FILE = "merchant_rules_user.tsv";
 
-    private static volatile List<Rule> rules;   // 懒加载，进程内缓存
+    private static volatile List<Rule> rules;       // 内置表，懒加载
+    private static volatile List<Rule> userRules;   // 个人表，懒加载
 
     private static class Rule {
         final String keyword;    // 已转小写，匹配时直接比
@@ -43,6 +57,9 @@ public class MerchantRules {
     public static String match(Context ctx, String text) {
         if (text == null || text.isEmpty()) return null;
         String hay = normalize(text);
+        for (Rule r : loadUser(ctx)) {      // 个人表优先，可覆盖内置规则
+            if (hit(hay, r)) return r.category;
+        }
         for (Rule r : load(ctx)) {
             if (hit(hay, r)) return r.category;
         }
@@ -52,7 +69,7 @@ public class MerchantRules {
     /**
      * 转小写，并把 '*' 当作分隔符、压缩连续空白。
      *
-     * 银行流水里普遍用星号分隔（CommBank 的 "UBER *EATS"、"SMP*SWANKY NOODLES"）。
+     * 银行流水里普遍用星号分隔商户前缀（如 "UBER *EATS"、"SQ *SOME SHOP"）。
      * 不归一化的话 "UBER *EATS" 匹配不上规则 "UBER EATS"，会退到更短的 "UBER" 上
      * 被误判成交通——这是在真实流水里抓到的。
      */
@@ -125,9 +142,41 @@ public class MerchantRules {
         return true;
     }
 
-    /** 表里一共多少条规则，供设置页显示。 */
+    /** 内置表条数，供设置页显示。 */
     public static int size(Context ctx) {
         return load(ctx).size();
+    }
+
+    /** 个人商户表条数；没导入过就是 0。 */
+    public static int userSize(Context ctx) {
+        return loadUser(ctx).size();
+    }
+
+    /** 个人商户表文件（可能不存在）。 */
+    public static File userFile(Context ctx) {
+        return new File(ctx.getFilesDir(), USER_FILE);
+    }
+
+    /**
+     * 用输入流覆盖个人商户表。
+     * @return 成功解析的规则条数；失败抛异常由调用方提示
+     */
+    public static int importUser(Context ctx, InputStream in) throws IOException {
+        File f = userFile(ctx);
+        try (FileOutputStream out = new FileOutputStream(f)) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+        }
+        synchronized (MerchantRules.class) { userRules = null; }
+        return userSize(ctx);
+    }
+
+    /** 删除个人商户表。 */
+    public static void clearUser(Context ctx) {
+        File f = userFile(ctx);
+        if (f.exists() && !f.delete()) f.deleteOnExit();
+        synchronized (MerchantRules.class) { userRules = null; }
     }
 
     private static List<Rule> load(Context ctx) {
@@ -140,19 +189,51 @@ public class MerchantRules {
         }
     }
 
+    private static List<Rule> loadUser(Context ctx) {
+        List<Rule> local = userRules;
+        if (local != null) return local;
+        synchronized (MerchantRules.class) {
+            if (userRules != null) return userRules;
+            userRules = parseUser(ctx);
+            return userRules;
+        }
+    }
+
     /** 用户增删自定义分类后必须调用：指向该分类的规则要重新参与匹配。 */
     public static void invalidate() {
         synchronized (MerchantRules.class) {
             rules = null;
+            userRules = null;
         }
     }
 
     private static List<Rule> parse(Context ctx) {
+        try {
+            return readRules(ctx, ctx.getAssets().open(ASSET));
+        } catch (Exception e) {
+            // 读不到表就当没有规则，全部走模型/待分类，不影响记账主流程
+            return new ArrayList<>();
+        }
+    }
+
+    private static List<Rule> parseUser(Context ctx) {
+        File f = userFile(ctx);
+        if (!f.exists()) return new ArrayList<>();
+        try (FileInputStream in = new FileInputStream(f)) {
+            return readRules(ctx, in);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /** 解析「关键词 TAB 分类」，跳过注释与空行，按关键词长度降序排列。 */
+    private static List<Rule> readRules(Context ctx, InputStream in) throws IOException {
         List<Rule> out = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(
-                ctx.getAssets().open(ASSET), StandardCharsets.UTF_8))) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
+                if (line.startsWith("﻿")) line = line.substring(1);
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#")) continue;
                 int tab = line.indexOf('\t');
@@ -162,8 +243,6 @@ public class MerchantRules {
                 if (kw.isEmpty() || !isKnownCategory(ctx, cat)) continue;
                 out.add(new Rule(kw, cat));
             }
-        } catch (Exception ignored) {
-            // 读不到表就当没有规则，全部走模型/待分类，不影响记账主流程
         }
         // 长关键词优先：保证 "UBER EATS" 先于 "UBER" 命中
         Collections.sort(out, new Comparator<Rule>() {
