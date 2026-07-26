@@ -263,6 +263,42 @@ public class AutoSettingsActivity extends AppCompatActivity {
             sourceList.addView(row);
             if (i < n - 1) sourceList.addView(divider());
         }
+
+        // 调试构建才有的入口：真实通知只能由支付 App 自己发出，没法在开发机上按需复现
+        // （NotificationListenerService 按来源包名过滤，adb 发的通知归 shell 包）。
+        // 这一项把一条固定的通知文本喂给 PaymentNotificationListener.ingest——和真实
+        // 回调同一个方法，所以它演示的就是线上行为。release 构建里 BuildConfig.DEBUG
+        // 是编译期常量 false，R8 会把整个分支连同下面的方法一起删掉。
+        if (BuildConfig.DEBUG) {
+            sourceList.addView(divider());
+            sourceList.addView(debugSimulateRow());
+        }
+    }
+
+    /** 见上：仅调试构建可见。 */
+    private View debugSimulateRow() {
+        TextView tv = new TextView(this);
+        tv.setText("模拟一条支付通知（调试）");
+        tv.setTextColor(ContextCompat.getColor(this, R.color.accent));
+        tv.setTextSize(16);
+        tv.setPadding(dp(16), dp(12), dp(16), dp(12));
+        tv.setOnClickListener(v -> {
+            // 支付宝付款通知的真实形状。金额 26.80 后面故意跟一个「账户余额 3120.55」：
+            // PaymentParser 应当记 26.80，而不是把余额当成本次消费。
+            Record r = PaymentNotificationListener.ingest(
+                    this,
+                    "com.eg.android.AlipayGphone",
+                    "付款成功",
+                    "你已成功付款 26.80元，账户余额 3120.55元。商家：星巴克咖啡（人民广场店）");
+            if (r == null) {
+                Toast.makeText(this, "解析失败", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this,
+                        "已生成：" + r.category + " " + r.currency + " " + r.amount,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+        return tv;
     }
 
     /** iOS 风格开关：开=苔绿轨道，关=浅灰轨道，白色圆钮。 */

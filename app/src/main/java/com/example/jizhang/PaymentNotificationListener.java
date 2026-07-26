@@ -1,6 +1,7 @@
 package com.example.jizhang;
 
 import android.app.Notification;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
@@ -64,18 +65,31 @@ public class PaymentNotificationListener extends NotificationListenerService {
         lastKey = key;
         lastTime = now;
 
+        ingest(this, pkg, title, body);
+    }
+
+    /**
+     * 把一条支付通知落成账目：解析 →（支出）查商户别名表 → 写库。
+     *
+     * 抽成静态方法，是为了让调试构建里的「模拟一条支付通知」能调用它：演示和真实
+     * 通知之间不存在第二套逻辑，否则演示出来的行为就不代表线上行为。
+     *
+     * @return 落库的记录；解析失败返回 null
+     */
+    static Record ingest(Context ctx, String pkg, String title, String body) {
         Record r = PaymentParser.parse(pkg, title, body);
-        if (r == null) return;
+        if (r == null) return null;
 
         // 支出记录就地查商户别名表补分类：纯本地、不联网、微秒级，不会拖慢通知回调。
         // 没命中就保持「待分类」，之后可在设置页用局域网里的本地模型批量补。
         if (r.type == 0) {
-            String cat = CategoryClassifier.byRules(this, title + "  " + body);
+            String cat = CategoryClassifier.byRules(ctx, title + "  " + body);
             if (cat != null) r.category = cat;
         }
 
-        new DbHelper(this).insert(r);
-        WidgetProvider.refresh(this);
+        new DbHelper(ctx).insert(r);
+        WidgetProvider.refresh(ctx);
+        return r;
     }
 
     private boolean isSupported(String pkg) {

@@ -115,9 +115,13 @@ public class PaymentParser {
 
     private static String appName(String pkg) {
         if (pkg == null) return "支付";
-        if (pkg.contains("alipay")) return "支付宝";
-        if (pkg.contains("tencent.mm")) return "微信";
-        if (pkg.contains("unionpay")) return "云闪付";
+        // 用下面那个大小写不敏感的 contains，而不是 String.contains：支付宝的包名是
+        // com.eg.android.AlipayGphone，大写的 Alipay 匹配不上小写字面量，于是每条支付宝
+        // 记录的来源都退化成默认的「支付」。微信和云闪付的包名恰好全小写，所以只有支付宝
+        // 这一个坏掉，也就一直没被那条只测微信的用例发现。
+        if (contains(pkg, "alipay")) return "支付宝";
+        if (contains(pkg, "tencent.mm")) return "微信";
+        if (contains(pkg, "unionpay")) return "云闪付";
         return "支付";
     }
 

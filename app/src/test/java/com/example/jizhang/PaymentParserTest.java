@@ -150,4 +150,22 @@ public class PaymentParserTest {
         Record r = PaymentParser.parse(WECHAT, "微信支付", "付款给星巴克 ¥32.00");
         org.junit.Assert.assertTrue(r.note.contains("微信"));
     }
+
+    /**
+     * 上面那条只测了微信，而微信的包名恰好全小写，所以它测不出 appName 用的是
+     * 大小写敏感的 String.contains。支付宝的包名带大写 Alipay，是唯一会踩到的一个：
+     * 修好之前这里拿到的是默认的「支付」。三个来源各钉一次，别再留这种盲区。
+     */
+    @Test public void 支付宝包名带大写也要认出来源() {
+        Record r = PaymentParser.parse(ALIPAY, "付款成功", "你已成功付款 26.80元");
+        assertNotNull(r);
+        org.junit.Assert.assertTrue("支付宝的包名带大写 Alipay，来源名不应退化成「支付」：" + r.note,
+                r.note.contains("支付宝"));
+    }
+
+    @Test public void 云闪付也要认出来源() {
+        Record r = PaymentParser.parse("com.unionpay", "云闪付", "消费 88.00元");
+        assertNotNull(r);
+        org.junit.Assert.assertTrue(r.note.contains("云闪付"));
+    }
 }

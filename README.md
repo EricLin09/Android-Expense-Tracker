@@ -75,7 +75,7 @@ length is safe.
 **Every case in this section is a unit test.** The boundary rules are three
 competing concessions and it is easy to fix one merchant while silently breaking
 another, so the false positives that motivated each rule are pinned as
-assertions rather than described in a comment. 51 tests in total, plain JVM, no
+assertions rather than described in a comment. 53 tests in total, plain JVM, no
 device needed:
 
 ```bash
@@ -92,6 +92,16 @@ card numbers to a *fallback* instead of discarding them, and an integer amount
 could not displace an earlier fallback. Hints are now two sets — "not this
 transaction's amount, but still money" (balance, points) versus "not money at
 all" (card/order/reference numbers).
+
+A third defect came from the other direction — from actually running the thing.
+Debug builds carry a **simulate-a-payment-notification** entry (real notifications
+can only be posted by the payment apps themselves, so they cannot be reproduced on
+demand), and it feeds a fixed notification text through the *same* `ingest` method
+the listener calls. The first run showed the source as "支付" rather than "支付宝":
+`appName` used case-sensitive `String.contains("alipay")` while Alipay's package is
+`com.eg.android.AlipayGphone`. WeChat and UnionPay have all-lowercase package names,
+so Alipay was the only one broken — and the one existing test for this covered
+WeChat, which is exactly why it never showed up. All three sources are pinned now.
 
 ---
 
@@ -162,6 +172,13 @@ constants file and their merchant tables, and install side by side.
 ./gradlew assembleGlobalDebug assembleCnDebug     # debug APKs
 ./gradlew assembleGlobalRelease assembleCnRelease # signed, shrunk
 ```
+
+Debug builds get an `applicationIdSuffix` of `.debug`, so a debug APK installs
+*alongside* a release one instead of colliding with it. Without the suffix the two
+share an applicationId but not a signature, and installing the debug build fails
+with a signature conflict whose only remedy is uninstalling the release build —
+taking the ledger with it. They now keep separate databases, and the debug build
+is the one carrying the simulate-a-notification entry described above.
 
 Release builds are signed from `keystore.properties`, which is not committed —
 without it the build still succeeds and simply produces an unsigned APK, so CI
