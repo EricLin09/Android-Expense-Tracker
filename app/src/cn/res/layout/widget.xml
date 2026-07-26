@@ -40,7 +40,7 @@
             android:layout_marginStart="6dp"
             android:text="¥0.00"
             android:textColor="#FFFFFF"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:fontFeatureSettings="tnum" />
@@ -69,7 +69,7 @@
             android:layout_marginStart="6dp"
             android:text="¥0.00"
             android:textColor="#EFB4A8"
-            android:textSize="17sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:fontFeatureSettings="tnum" />
